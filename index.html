@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#020305">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="راديو سوريا">
+  <meta name="description" content="إذاعات سورية وعربية مباشرة">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>راديو سوريا</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="glow" id="glow"></div>
+
+  <header class="top">
+    <div class="brand">
+      <img src="icons/icon-192.png" alt="">
+      <div>
+        <h1>راديو سوريا</h1>
+        <p id="tab-title">المحطات السورية</p>
+      </div>
+    </div>
+    <button class="icon-btn" id="about-btn" aria-label="حول التطبيق"><span data-icon="info"></span></button>
+  </header>
+
+  <div class="install hidden" id="install">
+    <span data-icon="share"></span>
+    <p>للتثبيت: اضغط زر <b>المشاركة</b> في Safari ثم <b>«إضافة إلى الشاشة الرئيسية»</b></p>
+    <button class="icon-btn small" id="install-close" aria-label="إغلاق"><span data-icon="close"></span></button>
+  </div>
+
+  <main id="scroll">
+    <label class="search">
+      <span data-icon="search"></span>
+      <input id="q" type="search" placeholder="ابحث عن محطة أو مدينة…" autocomplete="off" enterkeyhint="search">
+    </label>
+
+    <section class="recent hidden" id="recent-wrap">
+      <h2>استمعت مؤخراً</h2>
+      <div class="strip" id="recent"></div>
+    </section>
+
+    <div class="chips" id="chips"></div>
+    <div class="list" id="list"></div>
+    <div class="empty hidden" id="empty"></div>
+  </main>
+
+  <!-- المشغل المصغّر -->
+  <div class="mini hidden" id="mini">
+    <div class="art sm" id="mini-art"><img alt=""><span class="mono"></span></div>
+    <div class="mini-meta">
+      <div class="mini-name" id="mini-name"></div>
+      <div class="mini-status" id="mini-status"></div>
+    </div>
+    <div class="eq sm"><i></i><i></i><i></i><i></i></div>
+    <button class="mini-play" id="mini-play" aria-label="تشغيل/إيقاف"><span data-icon="play"></span></button>
+  </div>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="syria"><span data-icon="radio"></span><b>سورية</b></button>
+    <button class="tab" data-tab="arab"><span data-icon="globe"></span><b>عربية</b></button>
+    <button class="tab" data-tab="favs"><span data-icon="heart"></span><b>المفضلة</b></button>
+  </nav>
+
+  <!-- شاشة التشغيل الكاملة -->
+  <div class="sheet" id="sheet" aria-hidden="true">
+    <div class="sheet-bg" id="sheet-bg"></div>
+    <div class="sheet-body" id="sheet-body">
+      <button class="grab" id="sheet-close" aria-label="إغلاق"><span data-icon="chevron"></span></button>
+      <div class="art xl" id="np-art"><img alt=""><span class="mono"></span><b class="live-tag">مباشر</b></div>
+      <div class="np-tags"><span class="tag accent" id="np-gov"></span><span class="tag" id="np-genre"></span></div>
+      <h2 class="np-name" id="np-name"></h2>
+      <div class="np-en" id="np-en"></div>
+      <div class="np-state"><div class="eq"><i></i><i></i><i></i><i></i><i></i><i></i></div><span id="np-status"></span></div>
+
+      <div class="np-controls">
+        <button class="ctl" id="np-prev" aria-label="السابقة"><span class="mirror" data-icon="prev"></span></button>
+        <button class="ctl big" id="np-play" aria-label="تشغيل/إيقاف"><span data-icon="play"></span></button>
+        <button class="ctl" id="np-next" aria-label="التالية"><span class="mirror" data-icon="next"></span></button>
+      </div>
+
+      <div class="np-actions">
+        <button class="act" id="np-fav"><span data-icon="heart"></span><b>مفضلة</b></button>
+        <button class="act" id="np-sleep"><span data-icon="timer"></span><b id="np-sleep-label">مؤقت النوم</b></button>
+        <button class="act hidden" id="np-airplay"><span data-icon="airplay"></span><b>AirPlay</b></button>
+      </div>
+      <p class="np-quality" id="np-quality"></p>
+    </div>
+  </div>
+
+  <!-- حول -->
+  <div class="sheet" id="about" aria-hidden="true">
+    <div class="sheet-bg" data-close="about"></div>
+    <div class="sheet-body about-body">
+      <button class="grab" data-close="about" aria-label="إغلاق"><span data-icon="chevron"></span></button>
+      <h2>راديو سوريا</h2>
+      <p>إذاعات سورية وعربية مباشرة. المحطات الإضافية من دليل Radio Browser المفتوح وتُحدَّث تلقائياً.</p>
+      <p id="hidden-note" class="muted"></p>
+      <button class="wide-btn" id="refresh-btn">تحديث دليل المحطات</button>
+      <button class="wide-btn ghost" id="clear-btn">مسح «استمعت مؤخراً»</button>
+      <p class="muted small">النسخة 1.0 · نسخة الأيفون من تطبيق شاشة LG</p>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+  <audio id="audio" x-webkit-airplay="allow" playsinline preload="none"></audio>
+
+  <script src="js/stations.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
