@@ -213,6 +213,7 @@
     $('np-status').textContent = STATUS[S.state];
     $('np-title').textContent = S.title || '';
     $('np-title').classList.toggle('hidden', !S.title);
+    renderSongBtn();
     $('np-name').textContent = s.name;
     $('np-en').textContent = s.en || '';
     $('np-gov').textContent = s.gov || '';
@@ -305,7 +306,12 @@
   function tryNextUrl() {
     var s = S.current;
     if (!s) return;
-    if (S.urlIdx + 1 < s.urls.length) { play(s, S.urlIdx + 1); return; }
+    if (navigator.onLine === false) {      // لا نُحمّل الذنب على المحطة؛ نعيد المحاولة عند عودة الإنترنت
+      audio.pause(); setState('error');
+      toast('لا يوجد اتصال بالإنترنت — سأعيد المحاولة تلقائياً');
+      return;
+    }
+    if (S.urlIdx + 1 < s.urls.length) { toast('المحطة لا تستجيب — جاري التبديل لرابط احتياطي'); play(s, S.urlIdx + 1); return; }
     audio.pause();
     S.failed[s.id] = Date.now(); save('failed', S.failed);
     setState('error');
@@ -324,6 +330,8 @@
     var i = S.current ? list.map(function (s) { return s.id; }).indexOf(S.current.id) : -1;
     play(list[(i + d + list.length) % list.length]);
   }
+
+  window.addEventListener('online', function () { if (S.current && S.state === 'error') play(S.current, 0); });
 
   audio.addEventListener('playing', function () {
     var s = S.current;
@@ -442,6 +450,36 @@
   });
   $('q').addEventListener('input', function () { S.query = this.value.trim(); renderList(); });
   $('q').addEventListener('search', function () { this.blur(); });
+
+  // ---------- أغاني محفوظة (اسم الأغنية فقط، للبحث عنها لاحقاً) ----------
+  var songs = load('songs', []);
+  function songKey(t, st) { return st + '|' + t; }
+  function songSaved() { return !!S.title && songs.some(function (x) { return songKey(x.t, x.st) === songKey(S.title, S.current.name); }); }
+  function renderSongs() {
+    $('songs').innerHTML = songs.length ? songs.map(function (x, i) {
+      return '<div class="song"><a target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query=' + encodeURIComponent(x.t) + '">' +
+        esc(x.t) + '<small>' + esc(x.st) + '</small></a><button data-song-del="' + i + '" aria-label="حذف">✕</button></div>';
+    }).join('') : '<p class="muted small">اضغط «احفظ الأغنية» أثناء الاستماع لتظهر هنا.</p>';
+  }
+  function renderSongBtn() {
+    if (!songs) return;
+    var b = $('np-song-save'), show = !!(S.title && S.current && S.state === 'playing');
+    b.classList.toggle('hidden', !show);
+    if (show) { var on = songSaved(); b.classList.toggle('on', on); b.querySelector('b').textContent = on ? 'محفوظة' : 'احفظ الأغنية'; }
+  }
+  $('np-song-save').addEventListener('click', function () {
+    if (!S.title || !S.current || songSaved()) return;
+    songs.unshift({ t: S.title, st: S.current.name, at: Date.now() });
+    songs = songs.slice(0, 100);
+    save('songs', songs); renderSongs(); renderSongBtn(); toast('حُفظت الأغنية ♥');
+  });
+  $('songs').addEventListener('click', function (e) {
+    var d = e.target.closest('[data-song-del]');
+    if (!d) return;
+    songs.splice(+d.getAttribute('data-song-del'), 1);
+    save('songs', songs); renderSongs(); renderSongBtn();
+  });
+  renderSongs();
 
   // ---------- الإرسال إلى التلفاز ----------
   function sendCast(cmd) {
