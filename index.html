@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
@@ -43,6 +43,11 @@
       <span data-icon="search"></span>
       <input id="q" type="search" placeholder="ابحث عن محطة أو مدينة…" autocomplete="off" enterkeyhint="search">
     </label>
+
+    <section class="recent hidden" id="top-wrap">
+      <h2>الأكثر استماعاً</h2>
+      <div class="strip" id="top"></div>
+    </section>
 
     <section class="recent hidden" id="recent-wrap">
       <h2>استمعت مؤخراً</h2>
@@ -94,8 +99,10 @@
         <button class="act" id="np-fav"><span data-icon="heart"></span><b>مفضلة</b></button>
         <button class="act" id="np-sleep"><span data-icon="timer"></span><b id="np-sleep-label">مؤقت النوم</b></button>
         <button class="act" id="np-cast"><span data-icon="tv"></span><b>على التلفاز</b></button>
+        <button class="act" id="np-rec"><span data-icon="rec"></span><b>تسجيل</b></button>
         <button class="act hidden" id="np-airplay"><span data-icon="airplay"></span><b>AirPlay</b></button>
       </div>
+      <button class="song-save hidden" id="rec-save"><span data-icon="heart"></span><b>حفظ التسجيل</b></button>
       <p class="np-quality" id="np-quality"></p>
     </div>
   </div>
@@ -117,26 +124,59 @@
       <input id="cast-code" class="field" inputmode="numeric" maxlength="6" placeholder="رمز الربط (6 أرقام)" autocomplete="off">
       <button class="wide-btn ghost" id="cast-stop">إيقاف البث على التلفاز</button>
 
-      <h3>المنبّه الصباحي</h3>
+      <button class="wide-btn ghost" id="remote-open">ريموت التلفاز</button>
+
+      <h3>محطة كل فترة من اليوم</h3>
+      <p class="muted small">تظهر جاهزة للتشغيل عند فتح التطبيق، وتُشغَّل تلقائياً على التلفاز (يلزم رمز الربط).</p>
+      <div class="slots">
+        <label>صباحاً (5–12)<select id="slot-m" class="field"></select></label>
+        <label>ظهراً (12–18)<select id="slot-a" class="field"></select></label>
+        <label>مساءً (18–24)<select id="slot-e" class="field"></select></label>
+        <label>ليلاً (0–5)<select id="slot-n" class="field"></select></label>
+      </div>
+
+      <h3>التذكيرات</h3>
+      <div id="reminders" class="songs"></div>
       <div class="alarm-row">
         <input type="time" id="alarm-time" class="field" value="07:00">
         <select id="alarm-station" class="field"></select>
       </div>
+      <input id="alarm-label" class="field" placeholder="اسم التذكير (مثل: برنامج المساء)" maxlength="40">
       <div class="days" id="alarm-days"></div>
-      <button class="wide-btn" id="alarm-save">تفعيل المنبّه</button>
-      <button class="wide-btn ghost hidden" id="alarm-off">إيقاف المنبّه</button>
+      <button class="wide-btn" id="alarm-save">إضافة تذكير</button>
       <p class="muted small" id="alarm-note">يحتاج التطبيق مثبتاً على الشاشة الرئيسية وسماح الإشعارات.</p>
 
+      <p class="muted small" id="stat-note"></p>
       <button class="wide-btn" id="refresh-btn">تحديث دليل المحطات</button>
       <button class="wide-btn ghost" id="clear-btn">مسح «استمعت مؤخراً»</button>
-      <p class="muted small">النسخة 1.5 · نسخة الأيفون من تطبيق شاشة LG</p>
+      <p class="muted small">النسخة 1.6 · نسخة الأيفون من تطبيق شاشة LG</p>
     </div>
   </div>
 
   <div id="alarm-ring" class="hidden">
-    <b>صباح الخير ☀️</b>
+    <b id="ring-title">صباح الخير ☀️</b>
     <button class="wide-btn" id="alarm-play">تشغيل</button>
     <button class="wide-btn ghost" id="alarm-dismiss">إغلاق</button>
+  </div>
+
+  <!-- ريموت التلفاز -->
+  <div class="sheet" id="remote" aria-hidden="true">
+    <div class="sheet-bg" data-close="remote"></div>
+    <div class="sheet-body about-body">
+      <button class="grab" data-close="remote" aria-label="إغلاق"><span data-icon="chevron"></span></button>
+      <h2>ريموت التلفاز</h2>
+      <div class="np-name" id="tv-now">…</div>
+      <p class="muted small" id="tv-state"></p>
+      <div class="np-controls">
+        <button class="ctl" data-rc="prev" aria-label="السابقة"><span class="mirror" data-icon="prev"></span></button>
+        <button class="ctl big" data-rc="toggle" aria-label="تشغيل/إيقاف"><span data-icon="play"></span></button>
+        <button class="ctl" data-rc="next" aria-label="التالية"><span class="mirror" data-icon="next"></span></button>
+      </div>
+      <div class="np-controls">
+        <button class="ctl" data-rc="voldown" aria-label="خفض الصوت"><b>−</b></button>
+        <button class="ctl" data-rc="volup" aria-label="رفع الصوت"><b>+</b></button>
+      </div>
+    </div>
   </div>
 
   <div id="toast"></div>
