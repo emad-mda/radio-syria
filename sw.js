@@ -1,6 +1,6 @@
 ﻿// عامل الخدمة: يحفظ ملفات التطبيق ليفتح بسرعة وحتى دون اتصال.
 // لا يتدخل أبداً في روابط البث أو دليل المحطات.
-var CACHE = 'radio-syria-v8';
+var CACHE = 'radio-syria-v9';
 var SHELL = [
   './', 'index.html', 'css/app.css', 'js/stations.js', 'js/proxy.js', 'js/app.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'
@@ -19,23 +19,43 @@ self.addEventListener('activate', function (e) {
 });
 
 // منبّه الصباح: الوسيط يرسل إشعاراً بلا نص، ونعرض الرسالة هنا
+var PROXY = 'https://radio-syria-proxy.emad-mda.workers.dev';
+
+// الإشعار يصل بلا نص؛ نسأل الوسيط عن آخر تذكير (اسمه ومحطته) بنفس بصمة العنوان التي حسبها الوسيط
+function lastReminder() {
+  return self.registration.pushManager.getSubscription().then(function (sub) {
+    if (!sub) return {};
+    return crypto.subtle.digest('SHA-256', new TextEncoder().encode(sub.endpoint)).then(function (h) {
+      var s = '';
+      new Uint8Array(h).forEach(function (b) { s += String.fromCharCode(b); });
+      var id = btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '').slice(0, 24);
+      return fetch(PROXY + '/alarm/last/' + id).then(function (r) { return r.json(); });
+    });
+  });
+}
+
 self.addEventListener('push', function (e) {
-  e.waitUntil(self.registration.showNotification('راديو سوريا ⏰', {
-    body: 'صباح الخير — اضغط لتشغيل محطتك',
-    icon: 'icons/icon-192.png',
-    tag: 'alarm',
-    renotify: true
+  var timeout = new Promise(function (res) { setTimeout(function () { res({}); }, 4000); });
+  e.waitUntil(Promise.race([lastReminder().catch(function () { return {}; }), timeout]).then(function (info) {
+    return self.registration.showNotification(info.label || 'راديو سوريا ⏰', {
+      body: 'اضغط لتشغيل محطتك',
+      icon: 'icons/icon-192.png',
+      tag: 'alarm',
+      renotify: true,
+      data: { station: info.station || '', label: info.label || '' }
+    });
   }));
 });
 
 self.addEventListener('notificationclick', function (e) {
+  var d = e.notification.data || {};
   e.notification.close();
   e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {
     if (list.length) {
-      list[0].postMessage({ alarm: 1 });
+      list[0].postMessage({ alarm: 1, station: d.station, label: d.label });
       return list[0].focus();
     }
-    return self.clients.openWindow('./?alarm=1');
+    return self.clients.openWindow('./?alarm=1&st=' + encodeURIComponent(d.station || '') + '&label=' + encodeURIComponent(d.label || ''));
   }));
 });
 
@@ -68,4 +88,5 @@ self.addEventListener('fetch', function (e) {
     }));
   }
 });
+
 
