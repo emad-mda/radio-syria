@@ -239,6 +239,14 @@ body:not(.is-playing) .mini .eq { display: none; }
 .wide-btn.ghost { background: rgba(255, 255, 255, 0.07); color: var(--text); }
 .about-body h3 { font-size: 17px; font-weight: 800; margin-top: 8px; color: var(--accent); }
 .field { width: 100%; padding: 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.07); color: var(--text); border: 1px solid var(--line); font: inherit; font-size: 16px; text-align: center; }
+.song-save { display: inline-flex; align-items: center; gap: 6px; align-self: center; padding: 8px 16px; border-radius: 99px; background: rgba(255, 255, 255, 0.07); color: var(--text); font-size: 14px; font-weight: 700; }
+.song-save svg { width: 16px; height: 16px; fill: currentColor; }
+.song-save.on { color: var(--accent); }
+.songs { display: flex; flex-direction: column; gap: 6px; text-align: right; }
+.song { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); }
+.song a { flex: 1; min-width: 0; color: var(--text); text-decoration: none; font-size: 14px; line-height: 1.5; }
+.song small { display: block; color: var(--muted); font-size: 12px; }
+.song button { color: var(--muted); font-size: 18px; padding: 4px 8px; }
 .alarm-row { display: flex; gap: 8px; }
 .alarm-row .field:first-child { width: 38%; direction: ltr; }
 .days { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
