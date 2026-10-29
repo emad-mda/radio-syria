@@ -59,8 +59,23 @@
 
   var audio = $('audio');
 
+  // ---------- الفحص اليومي (status.json يكتبه GitHub Actions كل يوم) ----------
+  // المحطة التي فشلت في فحصين متتاليين تُخفى من القوائم، وتعود وحدها عندما تعمل
+  var STATUS_MAX_AGE_MS = 3 * 24 * 60 * 60 * 1000;
+  var deadIds = {};
+  function applyStatus(st) {
+    deadIds = {};
+    if (!st || !st.stations || Date.now() - Date.parse(st.checkedAt) > STATUS_MAX_AGE_MS) return;
+    var limit = st.deadAfter || 2;
+    var dead = Object.keys(st.stations).filter(function (id) { return st.stations[id].streak >= limit; });
+    // إذا بدت أغلب المحطات معطّلة فالخلل في الفحص نفسه، فنتجاهله
+    if (dead.length > window.CURATED_STATIONS.length / 2) return;
+    dead.forEach(function (id) { deadIds[id] = true; });
+  }
+  applyStatus(load('status', null));
+
   // ---------- مساعدات ----------
-  function catList(cat) { return S.all.filter(function (s) { return (s.cat || 'syria') === cat; }); }
+  function catList(cat) { return S.all.filter(function (s) { return (s.cat || 'syria') === cat && !deadIds[s.id]; }); }
   function isFav(s) { return S.favs.some(function (f) { return f.id === s.id; }); }
   function findStation(id) {
     return S.byId[id] || S.favs.filter(function (f) { return f.id === id; })[0] || S.recent.filter(function (f) { return f.id === id; })[0];
@@ -133,7 +148,7 @@
     }
 
     $('list').innerHTML = list.map(function (s) {
-      var cls = 'row' + (S.current && S.current.id === s.id ? ' current' : '') + (S.failed[s.id] ? ' down' : '');
+      var cls = 'row' + (S.current && S.current.id === s.id ? ' current' : '') + (S.failed[s.id] || deadIds[s.id] ? ' down' : '');
       return '<div class="' + cls + '" data-sid="' + esc(s.id) + '">' + artHTML(s) +
         '<div class="meta"><div class="name">' + esc(s.name) + '</div><div class="sub">' +
         esc([s.gov, s.genre || quality(s)].filter(Boolean).join(' · ')) + '</div></div>' +
@@ -479,6 +494,11 @@
   renderPlayer();
   renderSleep();
   fetchDirectory(false);
+  fetchJSON('status.json?t=' + Date.now(), 8000).then(function (st) {
+    save('status', st);
+    applyStatus(st);
+    renderList();
+  }, function () { /* لا يوجد فحص بعد */ });
 
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
     navigator.serviceWorker.register('sw.js').catch(function () { /* ignore */ });
