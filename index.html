@@ -92,6 +92,7 @@
       <div class="np-actions">
         <button class="act" id="np-fav"><span data-icon="heart"></span><b>مفضلة</b></button>
         <button class="act" id="np-sleep"><span data-icon="timer"></span><b id="np-sleep-label">مؤقت النوم</b></button>
+        <button class="act" id="np-cast"><span data-icon="tv"></span><b>على التلفاز</b></button>
         <button class="act hidden" id="np-airplay"><span data-icon="airplay"></span><b>AirPlay</b></button>
       </div>
       <p class="np-quality" id="np-quality"></p>
@@ -106,10 +107,32 @@
       <h2>راديو سوريا</h2>
       <p>إذاعات سورية وعربية مباشرة. المحطات الإضافية من دليل Radio Browser المفتوح وتُحدَّث تلقائياً.</p>
       <p id="hidden-note" class="muted"></p>
+
+      <h3>التلفاز</h3>
+      <p class="muted small">اكتب الرمز الظاهر على التلفاز (الإعدادات ← رمز الربط)، ثم اضغط «على التلفاز» في شاشة التشغيل.</p>
+      <input id="cast-code" class="field" inputmode="numeric" maxlength="6" placeholder="رمز الربط (6 أرقام)" autocomplete="off">
+      <button class="wide-btn ghost" id="cast-stop">إيقاف البث على التلفاز</button>
+
+      <h3>المنبّه الصباحي</h3>
+      <div class="alarm-row">
+        <input type="time" id="alarm-time" class="field" value="07:00">
+        <select id="alarm-station" class="field"></select>
+      </div>
+      <div class="days" id="alarm-days"></div>
+      <button class="wide-btn" id="alarm-save">تفعيل المنبّه</button>
+      <button class="wide-btn ghost hidden" id="alarm-off">إيقاف المنبّه</button>
+      <p class="muted small" id="alarm-note">يحتاج التطبيق مثبتاً على الشاشة الرئيسية وسماح الإشعارات.</p>
+
       <button class="wide-btn" id="refresh-btn">تحديث دليل المحطات</button>
       <button class="wide-btn ghost" id="clear-btn">مسح «استمعت مؤخراً»</button>
-      <p class="muted small">النسخة 1.3 · نسخة الأيفون من تطبيق شاشة LG</p>
+      <p class="muted small">النسخة 1.4 · نسخة الأيفون من تطبيق شاشة LG</p>
     </div>
+  </div>
+
+  <div id="alarm-ring" class="hidden">
+    <b>صباح الخير ☀️</b>
+    <button class="wide-btn" id="alarm-play">تشغيل</button>
+    <button class="wide-btn ghost" id="alarm-dismiss">إغلاق</button>
   </div>
 
   <div id="toast"></div>
