@@ -7,7 +7,8 @@ window.CURATED_STATIONS = [
   {
     id: 'damascus', name: 'إذاعة دمشق', en: 'Damascus Radio', mono: 'دمشق',
     cat: 'syria', gov: 'دمشق', genre: 'منوعات وطرب', color: '#ef4444',
-    urls: ['https://stream.damasradio.fm/radio'],
+    // الرابط الحكومي احتياطي — قد لا يعمل إلا من داخل سوريا
+    urls: ['https://stream.damasradio.fm/radio', 'http://radioliveb.rtv.gov.sy:8002/RadioDimshq'],
     logo: '', codec: 'MP3', bitrate: 128,
     match: /damascus radio|damasradio/i
   },
@@ -21,7 +22,7 @@ window.CURATED_STATIONS = [
   {
     id: 'ninar', name: 'نينار إف إم', en: 'Ninar FM', mono: 'نينار',
     cat: 'syria', gov: 'دمشق', genre: 'أغاني ومنوعات', color: '#f97316',
-    urls: ['https://ninarfm.grtvstream.com:8896/;', 'http://ninarfm.grtvstream.com:8896/;'],
+    urls: ['https://ninarfm.grtvstream.com:8896/;', 'https://ninarfm.grtvstream.com:8896/stream', 'http://ninarfm.grtvstream.com:8896/;'],
     logo: '', codec: 'MP3', bitrate: 128,
     match: /ninar/i
   },
@@ -105,6 +106,41 @@ window.CURATED_STATIONS = [
     match: /helmna/i
   },
 
+  {
+    id: 'emaar', name: 'إعمار إف إم', en: 'Emaar FM', mono: 'إعمار',
+    cat: 'syria', gov: 'أونلاين', genre: 'أغاني', color: '#0d9488',
+    urls: ['https://stream.zeno.fm/4luag56o066uv', 'https://stream-149.zeno.fm/4luag56o066uv', 'https://stream-156.zeno.fm/4luag56o066uv'],
+    logo: 'https://www.emaarradio.com/images/logo.png', codec: 'MP3', bitrate: 128,
+    match: /emaar/i
+  },
+  {
+    id: 'nasaem', name: 'نسائم سوريا', en: 'Nasaem Syria', mono: 'نسائم',
+    cat: 'syria', gov: 'أونلاين', genre: 'منوعات', color: '#0ea5e9',
+    urls: ['https://stream.zeno.fm/u1wbm3k7gxquv', 'https://stream-69.zeno.fm/u1wbm3k7gxquv'],
+    logo: 'https://nasaem.fm/wp-content/uploads/2026/01/Logo-N-26.jpg', codec: 'MP3', bitrate: 128,
+    match: /nasaem/i
+  },
+  {
+    id: 'tayf', name: 'طيف إف إم', en: 'Tayf FM', mono: 'طيف',
+    cat: 'syria', gov: 'أونلاين', genre: 'صدى السوريين', color: '#6366f1',
+    urls: ['https://stream.zeno.fm/xbohf8qf5uauv'],
+    logo: 'https://tayf.fm/logo192.png', codec: 'MP3', bitrate: 128,
+    match: /tayf/i
+  },
+  {
+    id: 'qadeem', name: 'قديم إف إم', en: 'Qadeem FM', mono: 'قديم',
+    cat: 'syria', gov: 'أونلاين', genre: 'أغاني زمان', color: '#a16207',
+    urls: ['http://usa6.fastcast4u.com:5109/live'],
+    logo: '', codec: 'MP3', bitrate: 96,
+    match: /قديم|qadeem/i
+  },
+  {
+    id: 'yeraz', name: 'راديو يراز', en: 'Radio Yeraz', mono: 'يراز',
+    cat: 'syria', gov: 'أونلاين', genre: 'أرمني', color: '#ea580c',
+    urls: ['http://149.255.60.194:8008/stream'],
+    logo: '', codec: 'MP3', bitrate: 80,
+    match: /yeraz/i
+  },
   {
     id: 'shabab', name: 'صوت الشباب', en: 'Sawt Al Shabab', mono: 'الشباب',
     cat: 'syria', gov: 'دمشق', genre: 'شبابية', color: '#0ea5e9',
