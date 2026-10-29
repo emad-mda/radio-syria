@@ -1,6 +1,6 @@
-// عامل الخدمة: يحفظ ملفات التطبيق ليفتح بسرعة وحتى دون اتصال.
+﻿// عامل الخدمة: يحفظ ملفات التطبيق ليفتح بسرعة وحتى دون اتصال.
 // لا يتدخل أبداً في روابط البث أو دليل المحطات.
-var CACHE = 'radio-syria-v5';
+var CACHE = 'radio-syria-v6';
 var SHELL = [
   './', 'index.html', 'css/app.css', 'js/stations.js', 'js/proxy.js', 'js/app.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'
@@ -25,7 +25,8 @@ self.addEventListener('fetch', function (e) {
 
   // ملفات التطبيق: من الشبكة أولاً لتصل التحديثات فوراً، ومن الذاكرة عند انقطاع الاتصال
   if (url.origin === self.location.origin) {
-    e.respondWith(fetch(req).then(function (res) {
+    // no-cache: يتحقق من الخادم في كل مرة (GitHub Pages يحفظ الملفات 10 دقائق في ذاكرة المتصفح)
+    e.respondWith(fetch(req, { cache: 'no-cache' }).then(function (res) {
       var copy = res.clone();
       caches.open(CACHE).then(function (c) { c.put(req, copy); });
       return res;
