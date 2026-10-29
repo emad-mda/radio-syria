@@ -247,6 +247,11 @@ body:not(.is-playing) .mini .eq { display: none; }
 .song a { flex: 1; min-width: 0; color: var(--text); text-decoration: none; font-size: 14px; line-height: 1.5; }
 .song small { display: block; color: var(--muted); font-size: 12px; }
 .song button { color: var(--muted); font-size: 18px; padding: 4px 8px; }
+.slots { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.slots label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+.slots .field { padding: 10px 6px; font-size: 14px; }
+#np-rec.on { color: var(--red); }
+.ctl b { font-size: 30px; font-weight: 800; }
 .alarm-row { display: flex; gap: 8px; }
 .alarm-row .field:first-child { width: 38%; direction: ltr; }
 .days { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
