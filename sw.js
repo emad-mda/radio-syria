@@ -1,8 +1,8 @@
 // عامل الخدمة: يحفظ ملفات التطبيق ليفتح بسرعة وحتى دون اتصال.
 // لا يتدخل أبداً في روابط البث أو دليل المحطات.
-var CACHE = 'radio-syria-v3';
+var CACHE = 'radio-syria-v5';
 var SHELL = [
-  './', 'index.html', 'css/app.css', 'js/stations.js', 'js/app.js', 'manifest.webmanifest',
+  './', 'index.html', 'css/app.css', 'js/stations.js', 'js/proxy.js', 'js/app.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'
 ];
 
