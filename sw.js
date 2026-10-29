@@ -1,6 +1,6 @@
 ﻿// عامل الخدمة: يحفظ ملفات التطبيق ليفتح بسرعة وحتى دون اتصال.
 // لا يتدخل أبداً في روابط البث أو دليل المحطات.
-var CACHE = 'radio-syria-v6';
+var CACHE = 'radio-syria-v7';
 var SHELL = [
   './', 'index.html', 'css/app.css', 'js/stations.js', 'js/proxy.js', 'js/app.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'
@@ -16,6 +16,27 @@ self.addEventListener('activate', function (e) {
     return Promise.all(keys.filter(function (k) { return k !== CACHE; }).map(function (k) { return caches.delete(k); }));
   }));
   self.clients.claim();
+});
+
+// منبّه الصباح: الوسيط يرسل إشعاراً بلا نص، ونعرض الرسالة هنا
+self.addEventListener('push', function (e) {
+  e.waitUntil(self.registration.showNotification('راديو سوريا ⏰', {
+    body: 'صباح الخير — اضغط لتشغيل محطتك',
+    icon: 'icons/icon-192.png',
+    tag: 'alarm',
+    renotify: true
+  }));
+});
+
+self.addEventListener('notificationclick', function (e) {
+  e.notification.close();
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {
+    if (list.length) {
+      list[0].postMessage({ alarm: 1 });
+      return list[0].focus();
+    }
+    return self.clients.openWindow('./?alarm=1');
+  }));
 });
 
 self.addEventListener('fetch', function (e) {
