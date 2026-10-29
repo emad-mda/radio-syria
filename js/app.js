@@ -11,6 +11,7 @@
     globe: '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm6.9 6h-2.9a15.6 15.6 0 0 0-1.4-3.9A8 8 0 0 1 18.9 8zM12 4c.9 1.2 1.6 2.6 2 4h-4c.4-1.4 1.1-2.8 2-4zM4.3 14a8.2 8.2 0 0 1 0-4h3.3a16.5 16.5 0 0 0 0 4zm.8 2h2.9c.3 1.4.8 2.7 1.4 3.9A8 8 0 0 1 5.1 16zM8 8H5.1a8 8 0 0 1 4.3-3.9C8.8 5.3 8.3 6.6 8 8zm4 12c-.9-1.2-1.6-2.6-2-4h4c-.4 1.4-1.1 2.8-2 4zm2.3-6H9.7a14.7 14.7 0 0 1 0-4h4.6a14.7 14.7 0 0 1 0 4zm.3 5.9c.6-1.2 1.1-2.5 1.4-3.9h2.9a8 8 0 0 1-4.3 3.9zm1.8-5.9a16.5 16.5 0 0 0 0-4h3.3a8.2 8.2 0 0 1 0 4z"/>',
     timer: '<path d="M9.5 1.5h5v2h-5zM12 5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17zm0 15a6.5 6.5 0 1 1 0-13 6.5 6.5 0 0 1 0 13zm1-11h-2v5.4l3.6 2.2 1-1.7-2.6-1.6zM18.7 4.9l1.4 1.4-1.6 1.6-1.4-1.4z"/>',
     tv: '<path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-5.5l1.2 2H17v2H7v-2h1.3l1.2-2H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm1 2v8h14V7z"/>',
+    rec: '<circle cx="12" cy="12" r="6"/>',
     airplay: '<path d="M3 4h18a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-3l-1.7-2H20V6H4v9h2.7L5 17H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm9 9 6 8H6z"/>',
     search: '<path d="M10.5 3a7.5 7.5 0 0 1 6 12l4.3 4.3-1.5 1.5-4.3-4.3A7.5 7.5 0 1 1 10.5 3zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11z"/>',
     info: '<path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm-1 8v7h2v-7zm1-4a1.3 1.3 0 1 0 0 2.6A1.3 1.3 0 0 0 12 6z"/>',
@@ -184,6 +185,9 @@
     }).join('');
     hydrateLogos($('recent'));
   }
+  // «الأكثر استماعاً» يُرسم مع القائمة
+  var renderRecentBase = renderRecent;
+  renderRecent = function () { renderRecentBase(); renderTop(); };
 
   // ---------- المشغّل ----------
   function setAccent(hex) {
@@ -354,6 +358,7 @@
     save('favs', S.favs);
     renderList();
     renderPlayer();
+    syncAll();
   }
 
   // ---------- مؤقت النوم ----------
@@ -493,7 +498,7 @@
     }).then(function (r) {
       if (!r.ok) throw 0;
       if (cmd === 'play') { toast('أُرسلت «' + S.current.name + '» إلى التلفاز'); stop(); }
-      else toast('أُوقف البث على التلفاز');
+      else if (cmd === 'stop') toast('أُوقف البث على التلفاز');
     }, function () { toast('تعذّر الاتصال بالوسيط'); }).catch(function () { toast('تعذّر الإرسال'); });
   }
   $('np-cast').addEventListener('click', function () { sendCast('play'); });
@@ -504,101 +509,276 @@
     save('castCode', this.value);
   });
 
-  // ---------- المنبّه الصباحي (إشعار Web Push من الوسيط) ----------
+  // ---------- التذكيرات: منبّه صباحي أو تنبيه ببرنامج (إشعار Web Push من الوسيط) ----------
   var VAPID_PUBLIC = 'BNsJwY6OzWhz01bgbV0290oeSWu9qhmSjckoKmJEksh4KZ4j1rsAcZtmbiks4Zasix6Ns1ODXq9Op6WJPA6c9Yk';
   var DAY_NAMES = ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'];
-  var alarm = load('alarm', { on: false, time: '07:00', station: '', days: [0, 1, 2, 3, 4, 5, 6] });
+  var reminders = load('reminders', null);
+  if (!reminders) {                              // ترحيل المنبّه الوحيد من النسخة 1.4
+    var old = load('alarm', null);
+    reminders = old && old.on ? [{ rid: '0', time: old.time, station: old.station, label: 'منبّه صباحي', days: old.days }] : [];
+    save('reminders', reminders);
+  }
+  var draftDays = [0, 1, 2, 3, 4, 5, 6];
 
+  function stationOptions(sel, withNone) {
+    var opts = catList('syria').concat(catList('arab')), keep = sel.value;
+    sel.innerHTML = (withNone ? '<option value="">— لا شيء —</option>' : '') +
+      opts.map(function (s) { return '<option value="' + esc(s.id) + '">' + esc(s.name) + '</option>'; }).join('');
+    if (keep) sel.value = keep;
+  }
+  function daysText(d) {
+    if (d.length === 7) return 'يومياً';
+    return d.slice().sort().map(function (i) { return DAY_NAMES[i]; }).join('، ');
+  }
   function renderAlarm() {
-    var sel = $('alarm-station'), opts = catList('syria').concat(catList('arab'));
-    sel.innerHTML = opts.map(function (s) { return '<option value="' + esc(s.id) + '">' + esc(s.name) + '</option>'; }).join('');
-    if (alarm.station && S.byId[alarm.station]) sel.value = alarm.station;
-    $('alarm-time').value = alarm.time;
+    stationOptions($('alarm-station'));
     $('alarm-days').innerHTML = DAY_NAMES.map(function (n, i) {
-      return '<button type="button" class="day' + (alarm.days.indexOf(i) >= 0 ? ' on' : '') + '" data-day="' + i + '">' + n + '</button>';
+      return '<button type="button" class="day' + (draftDays.indexOf(i) >= 0 ? ' on' : '') + '" data-day="' + i + '">' + n + '</button>';
     }).join('');
-    $('alarm-off').classList.toggle('hidden', !alarm.on);
-    $('alarm-save').textContent = alarm.on ? 'تحديث المنبّه' : 'تفعيل المنبّه';
-    var st = S.byId[alarm.station];
-    $('alarm-note').textContent = alarm.on
-      ? 'المنبّه مفعّل ' + alarm.time + (st ? ' · ' + st.name : '') + '. اضغط الإشعار ثم «تشغيل».'
-      : 'يحتاج التطبيق مثبتاً على الشاشة الرئيسية وسماح الإشعارات.';
+    $('reminders').innerHTML = reminders.length ? reminders.map(function (r) {
+      var st = S.byId[r.station];
+      return '<div class="song"><div style="flex:1;min-width:0"><b>' + esc(r.time) + '</b> ' + esc(r.label || '') +
+        '<small>' + esc(daysText(r.days)) + (st ? ' · ' + esc(st.name) : '') + '</small></div>' +
+        '<button data-rem-del="' + esc(r.rid) + '" aria-label="حذف">✕</button></div>';
+    }).join('') : '<p class="muted small">لا توجد تذكيرات.</p>';
   }
   function b64ToBytes(s) {
     var raw = atob(s.replace(/-/g, '+').replace(/_/g, '/')), out = new Uint8Array(raw.length);
     for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
     return out;
   }
-  function postAlarm(sub, on) {
-    var t = (alarm.time || '07:00').split(':');
+  function pushSub(create) {
+    return navigator.serviceWorker.ready.then(function (reg) {
+      return reg.pushManager.getSubscription().then(function (sub) {
+        return sub || (create ? reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(VAPID_PUBLIC) }) : null);
+      });
+    });
+  }
+  function postAlarm(sub, r, on) {
+    var t = (r.time || '07:00').split(':');
     return fetch(PROXY + '/alarm', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
-        sub: sub, on: on, hh: +t[0], mm: +t[1], days: alarm.days,
+        sub: sub, on: on, rid: r.rid, label: r.label || '', station: r.station || '', hh: +t[0], mm: +t[1], days: r.days,
         tz: (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC')
       })
-    }).then(function (r) { if (!r.ok) throw 0; });
+    }).then(function (res) { if (!res.ok) throw 0; });
   }
-  function alarmSave() {
+  function reminderAdd() {
     if (!PROXY) { toast('الوسيط غير مفعّل'); return; }
     if (!('serviceWorker' in navigator) || !('PushManager' in window) || !window.Notification) {
       toast('ثبّت التطبيق على الشاشة الرئيسية أولاً (iOS 16.4 أو أحدث)'); return;
     }
-    if (!alarm.days.length) { toast('اختر يوماً واحداً على الأقل'); return; }
-    alarm.time = $('alarm-time').value || '07:00';
-    alarm.station = $('alarm-station').value;
+    if (!draftDays.length) { toast('اختر يوماً واحداً على الأقل'); return; }
+    var r = {
+      rid: Math.random().toString(36).slice(2, 8), time: $('alarm-time').value || '07:00', station: $('alarm-station').value,
+      label: $('alarm-label').value.trim(), days: draftDays.slice()
+    };
     Notification.requestPermission().then(function (perm) {
       if (perm !== 'granted') throw new Error('perm');
-      return navigator.serviceWorker.ready;
-    }).then(function (reg) {
-      return reg.pushManager.getSubscription().then(function (sub) {
-        return sub || reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(VAPID_PUBLIC) });
-      });
+      return pushSub(true);
     }).then(function (sub) {
-      return postAlarm(sub.toJSON(), true);
+      return postAlarm(sub.toJSON(), r, true);
     }).then(function () {
-      alarm.on = true; save('alarm', alarm); renderAlarm(); toast('تم تفعيل المنبّه ⏰');
+      reminders.push(r); save('reminders', reminders); $('alarm-label').value = ''; renderAlarm(); toast('تمت إضافة التذكير ⏰');
     }).catch(function (e) {
-      toast(e && e.message === 'perm' ? 'اسمح بالإشعارات من إعدادات الأيفون' : 'تعذّر تفعيل المنبّه');
+      toast(e && e.message === 'perm' ? 'اسمح بالإشعارات من إعدادات الأيفون' : 'تعذّر إضافة التذكير');
     });
   }
-  function alarmOff() {
-    navigator.serviceWorker.ready.then(function (reg) { return reg.pushManager.getSubscription(); }).then(function (sub) {
-      return sub ? postAlarm(sub.toJSON(), false) : null;
+  function reminderDel(rid) {
+    pushSub(false).then(function (sub) {
+      return sub ? postAlarm(sub.toJSON(), { rid: rid }, false) : null;
     }).then(function () {
-      alarm.on = false; save('alarm', alarm); renderAlarm(); toast('أُوقف المنبّه');
-    }, function () { toast('تعذّر إيقاف المنبّه'); });
+      reminders = reminders.filter(function (r) { return r.rid !== rid; });
+      save('reminders', reminders); renderAlarm(); toast('حُذف التذكير');
+    }, function () { toast('تعذّر الحذف'); });
   }
-  $('alarm-save').addEventListener('click', alarmSave);
-  $('alarm-off').addEventListener('click', alarmOff);
+  $('alarm-save').addEventListener('click', reminderAdd);
+  $('reminders').addEventListener('click', function (e) {
+    var d = e.target.closest('[data-rem-del]');
+    if (d) reminderDel(d.getAttribute('data-rem-del'));
+  });
   $('alarm-days').addEventListener('click', function (e) {
     var b = e.target.closest('[data-day]');
     if (!b) return;
-    var d = +b.getAttribute('data-day'), i = alarm.days.indexOf(d);
-    if (i >= 0) alarm.days.splice(i, 1); else alarm.days.push(d);
+    var d = +b.getAttribute('data-day'), i = draftDays.indexOf(d);
+    if (i >= 0) draftDays.splice(i, 1); else draftDays.push(d);
     b.classList.toggle('on');
   });
   $('about-btn').addEventListener('click', renderAlarm);
 
-  // الضغط على إشعار المنبّه: زر كبير للتشغيل (Safari يشترط لمسة لبدء الصوت)
-  function showRing() {
-    var st = S.byId[alarm.station] || S.current;
+  // الضغط على إشعار التذكير: زر كبير للتشغيل (Safari يشترط لمسة لبدء الصوت)
+  var ringStation = null;
+  function showRing(stationId, label) {
+    var st = S.byId[stationId] || S.current;
     if (!st) return;
+    ringStation = st;
+    $('ring-title').textContent = label || 'صباح الخير ☀️';
     $('alarm-play').textContent = 'تشغيل ' + st.name;
     $('alarm-ring').classList.remove('hidden');
   }
   $('alarm-play').addEventListener('click', function () {
     $('alarm-ring').classList.add('hidden');
-    play(S.byId[alarm.station] || S.current);
+    play(ringStation);
   });
   $('alarm-dismiss').addEventListener('click', function () { $('alarm-ring').classList.add('hidden'); });
-  if (/[?&]alarm=1/.test(location.search)) {
+  var qs = new URLSearchParams(location.search);
+  if (qs.get('alarm') === '1') {
     try { history.replaceState(null, '', location.pathname); } catch (e) { /* ignore */ }
-    showRing();
+    showRing(qs.get('st'), qs.get('label'));
   }
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.addEventListener('message', function (e) { if (e.data && e.data.alarm) showRing(); });
+    navigator.serviceWorker.addEventListener('message', function (e) { if (e.data && e.data.alarm) showRing(e.data.station, e.data.label); });
   }
+
+  // ---------- مزامنة المفضلة مع التلفاز + محطة كل فترة من اليوم ----------
+  var favBase = load('favBase', null);
+  var SLOT_KEYS = ['m', 'a', 'e', 'n'];
+  function castCodeOk() { return /^\d{6}$/.test(load('castCode', '')); }
+  function syncPost(body) {
+    return fetch(PROXY + '/sync/' + load('castCode', ''), {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body)
+    }).then(function (r) { if (!r.ok) throw 0; return r.json(); });
+  }
+  function renderSlots() {
+    var slots = load('slots', {});
+    SLOT_KEYS.forEach(function (k) {
+      var sel = $('slot-' + k);
+      stationOptions(sel, true);
+      sel.value = slots[k] && S.byId[slots[k]] ? slots[k] : '';
+    });
+  }
+  function syncAll(extra) {
+    if (!PROXY || !castCodeOk()) return;
+    var ids = S.favs.map(function (f) { return f.id; }), base = favBase || [];
+    var body = {
+      add: ids.filter(function (i) { return base.indexOf(i) < 0; }),
+      remove: base.filter(function (i) { return ids.indexOf(i) < 0; })
+    };
+    if (extra) for (var k in extra) body[k] = extra[k];
+    syncPost(body).then(function (r) {
+      var next = (r.favs || []).map(function (id) {
+        return S.favs.filter(function (f) { return f.id === id; })[0] || (S.byId[id] && snapshot(S.byId[id]));
+      }).filter(Boolean);
+      favBase = next.map(function (f) { return f.id; }); save('favBase', favBase);   // معرّفات مجهولة هنا تبقى على الخادم
+      save('slots', r.slots || {});
+      if (next.map(function (f) { return f.id; }).join() !== ids.join()) { S.favs = next; save('favs', S.favs); renderList(); renderPlayer(); }
+      renderSlots();
+    }, function () { /* نعيد المحاولة لاحقاً */ });
+  }
+  SLOT_KEYS.forEach(function (k) {
+    $('slot-' + k).addEventListener('change', function () {
+      var slots = {};
+      SLOT_KEYS.forEach(function (x) { if ($('slot-' + x).value) slots[x] = $('slot-' + x).value; });
+      save('slots', slots);
+      if (!castCodeOk()) { toast('اكتب رمز الربط أولاً ليصل إلى التلفاز'); return; }
+      syncAll({ slots: slots }); toast('حُفظ');
+    });
+  });
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) syncAll(); });
+
+  // ---------- ريموت التلفاز ----------
+  var remoteTimer;
+  function remoteTick() {
+    if (!$('remote').classList.contains('open')) { clearInterval(remoteTimer); return; }
+    if (!castCodeOk()) { $('tv-now').textContent = 'اكتب رمز الربط أولاً'; return; }
+    fetch(PROXY + '/cast/' + load('castCode', '') + '/state?t=' + Date.now()).then(function (r) { return r.json(); }).then(function (st) {
+      var online = st.at && Date.now() - st.at < 30000;
+      var s = st.sid && S.byId[st.sid];
+      $('tv-now').textContent = online ? (s ? s.name : 'لا محطة') : 'التلفاز غير متصل';
+      $('tv-state').textContent = online ? (st.p ? 'يعمل الآن' : 'متوقف') + ' · الصوت ' + st.v + '%' : 'افتح تطبيق راديو سوريا على التلفاز';
+    }, function () { /* نبقي القيمة السابقة */ });
+  }
+  $('remote-open').addEventListener('click', function () {
+    closeSheet('about'); openSheet('remote');
+    remoteTick(); clearInterval(remoteTimer); remoteTimer = setInterval(remoteTick, 3000);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-rc]'), function (b) {
+    b.addEventListener('click', function () { sendCast(b.getAttribute('data-rc')); setTimeout(remoteTick, 1500); });
+  });
+
+  // ---------- الاستماع: الأكثر استماعاً ----------
+  var stats = load('stats', { s: {} });
+  setInterval(function () {
+    if (S.state !== 'playing' || !S.current) return;
+    stats.s[S.current.id] = (stats.s[S.current.id] || 0) + 30;
+    save('stats', stats);
+  }, 30000);
+  function topStations() {
+    return Object.keys(stats.s).filter(function (id) { return stats.s[id] >= 300 && S.byId[id] && !deadIds[id]; })
+      .sort(function (a, b) { return stats.s[b] - stats.s[a]; }).slice(0, 5).map(function (id) { return S.byId[id]; });
+  }
+  function renderTop() {
+    var list = topStations(), show = S.tab === 'syria' && !S.query && list.length > 0;
+    $('top-wrap').classList.toggle('hidden', !show);
+    if (!show) return;
+    $('top').innerHTML = list.map(function (s) {
+      return '<button class="tile" data-sid="' + esc(s.id) + '">' + artHTML(s) + '<b>' + esc(s.name) + '</b></button>';
+    }).join('');
+    hydrateLogos($('top'));
+    var total = Object.keys(stats.s).reduce(function (a, k) { return a + stats.s[k]; }, 0);
+    $('stat-note').textContent = 'إجمالي استماعك: ' + (total / 3600).toFixed(1) + ' ساعة';
+  }
+
+  // ---------- تسجيل البث (يُحفظ في الأيفون) ----------
+  var REC_MAX_MS = 60 * 60 * 1000;
+  var rec = null, recFile = null;
+  function recName(station, ext) {
+    var d = new Date(), p = function (n) { return String(n).padStart(2, '0'); };
+    return (station.name.replace(/[^\w؀-ۿ]+/g, '-') + '-' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes()) + '.' + ext);
+  }
+  function renderRec() {
+    var b = $('np-rec');
+    b.classList.toggle('on', !!rec);
+    b.querySelector('b').textContent = rec ? '● ' + Math.floor((Date.now() - rec.t0) / 60000) + ':' + String(Math.floor((Date.now() - rec.t0) / 1000) % 60).padStart(2, '0') : 'تسجيل';
+    $('rec-save').classList.toggle('hidden', !recFile);
+    if (recFile) $('rec-save').querySelector('b').textContent = 'حفظ التسجيل (' + (recFile.size / 1048576).toFixed(1) + ' MB)';
+  }
+  function recStop() {
+    if (!rec) return;
+    var r = rec; rec = null;
+    clearInterval(r.timer); r.ctl.abort();
+    if (r.bytes > 0) {
+      var ext = /aac|mp4/i.test(r.type) ? 'aac' : 'mp3';
+      recFile = new File(r.chunks, recName(r.station, ext), { type: r.type || 'audio/mpeg' });
+      toast('انتهى التسجيل — اضغط «حفظ التسجيل»');
+    }
+    renderRec();
+  }
+  function recStart() {
+    var s = S.current;
+    if (!s) return;
+    if (!PROXY || NP_IDS.indexOf(s.id) < 0) { toast('التسجيل غير متاح لهذه المحطة'); return; }
+    recFile = null;
+    var r = rec = { station: s, chunks: [], bytes: 0, t0: Date.now(), ctl: new AbortController(), type: '' };
+    r.timer = setInterval(function () { if (Date.now() - r.t0 > REC_MAX_MS) recStop(); else renderRec(); }, 1000);
+    fetch(PROXY + '/stream/' + encodeURIComponent(s.id), { signal: r.ctl.signal }).then(function (res) {
+      if (!res.ok || !res.body) throw 0;
+      r.type = res.headers.get('content-type') || '';
+      var reader = res.body.getReader();
+      (function pump() {
+        return reader.read().then(function (x) {
+          if (x.done || rec !== r) return;
+          r.chunks.push(x.value); r.bytes += x.value.length;
+          return pump();
+        });
+      })().then(function () { if (rec === r) recStop(); }, function () { if (rec === r) recStop(); });
+    }).catch(function () { if (rec === r) { rec = null; clearInterval(r.timer); renderRec(); toast('تعذّر بدء التسجيل'); } });
+    toast('بدأ التسجيل — أبقِ التطبيق مفتوحاً');
+    renderRec();
+  }
+  $('np-rec').addEventListener('click', function () { if (rec) recStop(); else recStart(); });
+  $('rec-save').addEventListener('click', function () {
+    if (!recFile) return;
+    var f = recFile;
+    if (navigator.canShare && navigator.canShare({ files: [f] })) {
+      navigator.share({ files: [f] }).catch(function () { /* أُلغيت المشاركة */ });
+    } else {
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(f); a.download = f.name; document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+    }
+  });
 
   // AirPlay (يظهر الزر فقط إذا وُجد جهاز AirPlay)
   if (window.WebKitPlaybackTargetAvailabilityEvent) {
@@ -679,8 +859,16 @@
     var ls = S.byId[last.id] || (usable(last.urls || []).length ? last : null);
     if (ls) { S.current = ls; S.state = 'idle'; }
   }
+  // محطة هذه الفترة من اليوم (من الإعدادات) تُعرض في المشغّل الصغير جاهزة للتشغيل
+  var slotKey = (function () { var h = new Date().getHours(); return h < 5 ? 'n' : h < 12 ? 'm' : h < 18 ? 'a' : 'e'; })();
+  var slotSt = S.byId[load('slots', {})[slotKey]];
+  if (slotSt) { S.current = slotSt; S.state = 'idle'; }
   renderPlayer();
   renderSleep();
+  renderSlots();
+  renderRec();
+  renderTop();
+  syncAll();
   fetchDirectory(false);
   fetchJSON('status.json?t=' + Date.now(), 8000).then(function (st) {
     save('status', st);
