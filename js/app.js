@@ -39,10 +39,16 @@
   var HTTPS_ONLY = location.protocol === 'https:';
   function usable(urls) { return HTTPS_ONLY ? urls.filter(function (u) { return /^https:/i.test(u); }) : urls.slice(); }
 
+  // الوسيط (Cloudflare Worker): يعيد بث محطات http عبر https، ويجلب اسم الأغنية الحالية
+  var PROXY = (window.PROXY_BASE || '').replace(/\/$/, '');
+  var PROXY_IDS = window.PROXY_IDS || [];
+  var NP_IDS = window.NP_IDS || [];
+
   var curated = [], hiddenCount = 0;
   window.CURATED_STATIONS.forEach(function (s) {
     var o = {}; for (var k in s) if (k !== 'match') o[k] = s[k];
     o.urls = usable(s.urls);
+    if (!o.urls.length && PROXY && PROXY_IDS.indexOf(s.id) >= 0) o.urls = [PROXY + '/stream/' + s.id];
     if (o.urls.length) curated.push(o); else hiddenCount++;
   });
 
@@ -202,8 +208,10 @@
     $('mini-play').innerHTML = svg(on ? 'pause' : 'play');
     $('np-play').innerHTML = svg(on ? 'pause' : 'play');
     $('mini-name').textContent = s.name;
-    $('mini-status').textContent = STATUS[S.state];
+    $('mini-status').textContent = S.title && S.state === 'playing' ? S.title : STATUS[S.state];
     $('np-status').textContent = STATUS[S.state];
+    $('np-title').textContent = S.title || '';
+    $('np-title').classList.toggle('hidden', !S.title);
     $('np-name').textContent = s.name;
     $('np-en').textContent = s.en || '';
     $('np-gov').textContent = s.gov || '';
@@ -229,8 +237,8 @@
     var s = S.current;
     try {
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: s.name,
-        artist: [s.gov, s.genre].filter(Boolean).join(' · ') || 'راديو سوريا',
+        title: S.title || s.name,
+        artist: S.title ? s.name : ([s.gov, s.genre].filter(Boolean).join(' · ') || 'راديو سوريا'),
         album: 'راديو سوريا',
         artwork: [
           { src: s.logo || 'icons/icon-512.png', sizes: '512x512' },
@@ -252,10 +260,30 @@
     Object.keys(handlers).forEach(function (a) { try { ms.setActionHandler(a, handlers[a]); } catch (e) { /* غير مدعوم */ } });
   }
 
+  // اسم الأغنية الحالية: يُجلب من الوسيط كل 20 ثانية أثناء التشغيل
+  var npTimer;
+  function setTitle(t) {
+    if ((t || null) === (S.title || null)) return;
+    S.title = t || null;
+    renderPlayer();
+    updateMediaSession();
+  }
+  function pollNowPlaying() {
+    clearTimeout(npTimer);
+    var s = S.current;
+    if (!PROXY || !s || S.state !== 'playing' || NP_IDS.indexOf(s.id) < 0) return;
+    fetchJSON(PROXY + '/np/' + encodeURIComponent(s.id), 9000).then(function (r) {
+      if (S.current && S.current.id === s.id) setTitle(r && r.title);
+    }, function () { /* نبقي العنوان السابق */ }).then(function () {
+      npTimer = setTimeout(pollNowPlaying, 20000);
+    });
+  }
+
   var watchdog;
   function setState(st) {
     S.state = st;
     clearTimeout(watchdog);
+    if (st !== 'playing' && st !== 'buffering') { clearTimeout(npTimer); S.title = null; }
     if (st === 'buffering') watchdog = setTimeout(function () { if (S.state === 'buffering') tryNextUrl(); }, BUFFER_WATCHDOG_MS);
     renderPlayer();
     updateMediaSession();
@@ -265,6 +293,7 @@
     if (!station) return;
     S.current = station;
     S.urlIdx = urlIdx || 0;
+    clearTimeout(npTimer); S.title = null;
     save('last', snapshot(station));
     audio.src = station.urls[S.urlIdx];
     setState('buffering');
@@ -302,6 +331,7 @@
     save('recent', S.recent);
     setState('playing');
     renderRecent();
+    pollNowPlaying();
   });
   audio.addEventListener('waiting', function () { if (S.state === 'playing') setState('buffering'); });
   audio.addEventListener('pause', function () { if (S.state === 'playing' || S.state === 'buffering') setState('paused'); });
@@ -482,7 +512,7 @@
   // ---------- البدء ----------
   paintIcons();
   $('hidden-note').textContent = hiddenCount
-    ? hiddenCount + ' محطات (مثل روتانا وأورمان وصوت الشباب) تبث بروابط http غير آمنة، ولا يسمح Safari بتشغيلها هنا. تعمل على تطبيق التلفاز.'
+    ? hiddenCount + ' محطات لا تعمل هنا: إما تبث بروابط غير آمنة (http) يمنعها Safari، أو لا تفتح إلا من داخل سوريا. بعضها يعمل على تطبيق التلفاز.'
     : '';
   var cached = load('directory', null);
   if (cached && cached.rows) mergeDirectory(cached.rows); else renderList();
