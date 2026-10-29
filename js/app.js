@@ -10,6 +10,7 @@
     radio: '<path d="M4 9h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10a1 1 0 0 1 1-1zm4 2.5a3.25 3.25 0 1 0 0 6.5 3.25 3.25 0 0 0 0-6.5zM13.5 12.5V14h5v-1.5zm0 3.5v1.5h5V16zM5.6 7.6 16.8 3l.6 1.4L9.6 7.6z"/>',
     globe: '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm6.9 6h-2.9a15.6 15.6 0 0 0-1.4-3.9A8 8 0 0 1 18.9 8zM12 4c.9 1.2 1.6 2.6 2 4h-4c.4-1.4 1.1-2.8 2-4zM4.3 14a8.2 8.2 0 0 1 0-4h3.3a16.5 16.5 0 0 0 0 4zm.8 2h2.9c.3 1.4.8 2.7 1.4 3.9A8 8 0 0 1 5.1 16zM8 8H5.1a8 8 0 0 1 4.3-3.9C8.8 5.3 8.3 6.6 8 8zm4 12c-.9-1.2-1.6-2.6-2-4h4c-.4 1.4-1.1 2.8-2 4zm2.3-6H9.7a14.7 14.7 0 0 1 0-4h4.6a14.7 14.7 0 0 1 0 4zm.3 5.9c.6-1.2 1.1-2.5 1.4-3.9h2.9a8 8 0 0 1-4.3 3.9zm1.8-5.9a16.5 16.5 0 0 0 0-4h3.3a8.2 8.2 0 0 1 0 4z"/>',
     timer: '<path d="M9.5 1.5h5v2h-5zM12 5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17zm0 15a6.5 6.5 0 1 1 0-13 6.5 6.5 0 0 1 0 13zm1-11h-2v5.4l3.6 2.2 1-1.7-2.6-1.6zM18.7 4.9l1.4 1.4-1.6 1.6-1.4-1.4z"/>',
+    tv: '<path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-5.5l1.2 2H17v2H7v-2h1.3l1.2-2H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm1 2v8h14V7z"/>',
     airplay: '<path d="M3 4h18a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-3l-1.7-2H20V6H4v9h2.7L5 17H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm9 9 6 8H6z"/>',
     search: '<path d="M10.5 3a7.5 7.5 0 0 1 6 12l4.3 4.3-1.5 1.5-4.3-4.3A7.5 7.5 0 1 1 10.5 3zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11z"/>',
     info: '<path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm-1 8v7h2v-7zm1-4a1.3 1.3 0 1 0 0 2.6A1.3 1.3 0 0 0 12 6z"/>',
@@ -441,6 +442,125 @@
   });
   $('q').addEventListener('input', function () { S.query = this.value.trim(); renderList(); });
   $('q').addEventListener('search', function () { this.blur(); });
+
+  // ---------- الإرسال إلى التلفاز ----------
+  function sendCast(cmd) {
+    var code = load('castCode', '');
+    if (!PROXY) { toast('الوسيط غير مفعّل'); return; }
+    if (!/^\d{6}$/.test(code)) { openSheet('about'); toast('اكتب رمز الربط من التلفاز أولاً'); return; }
+    if (cmd === 'play' && !S.current) return;
+    fetch(PROXY + '/cast/' + code, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ cmd: cmd, id: cmd === 'play' ? S.current.id : '' })
+    }).then(function (r) {
+      if (!r.ok) throw 0;
+      if (cmd === 'play') { toast('أُرسلت «' + S.current.name + '» إلى التلفاز'); stop(); }
+      else toast('أُوقف البث على التلفاز');
+    }, function () { toast('تعذّر الاتصال بالوسيط'); }).catch(function () { toast('تعذّر الإرسال'); });
+  }
+  $('np-cast').addEventListener('click', function () { sendCast('play'); });
+  $('cast-stop').addEventListener('click', function () { sendCast('stop'); });
+  $('cast-code').value = load('castCode', '');
+  $('cast-code').addEventListener('input', function () {
+    this.value = this.value.replace(/\D/g, '').slice(0, 6);
+    save('castCode', this.value);
+  });
+
+  // ---------- المنبّه الصباحي (إشعار Web Push من الوسيط) ----------
+  var VAPID_PUBLIC = 'BNsJwY6OzWhz01bgbV0290oeSWu9qhmSjckoKmJEksh4KZ4j1rsAcZtmbiks4Zasix6Ns1ODXq9Op6WJPA6c9Yk';
+  var DAY_NAMES = ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'];
+  var alarm = load('alarm', { on: false, time: '07:00', station: '', days: [0, 1, 2, 3, 4, 5, 6] });
+
+  function renderAlarm() {
+    var sel = $('alarm-station'), opts = catList('syria').concat(catList('arab'));
+    sel.innerHTML = opts.map(function (s) { return '<option value="' + esc(s.id) + '">' + esc(s.name) + '</option>'; }).join('');
+    if (alarm.station && S.byId[alarm.station]) sel.value = alarm.station;
+    $('alarm-time').value = alarm.time;
+    $('alarm-days').innerHTML = DAY_NAMES.map(function (n, i) {
+      return '<button type="button" class="day' + (alarm.days.indexOf(i) >= 0 ? ' on' : '') + '" data-day="' + i + '">' + n + '</button>';
+    }).join('');
+    $('alarm-off').classList.toggle('hidden', !alarm.on);
+    $('alarm-save').textContent = alarm.on ? 'تحديث المنبّه' : 'تفعيل المنبّه';
+    var st = S.byId[alarm.station];
+    $('alarm-note').textContent = alarm.on
+      ? 'المنبّه مفعّل ' + alarm.time + (st ? ' · ' + st.name : '') + '. اضغط الإشعار ثم «تشغيل».'
+      : 'يحتاج التطبيق مثبتاً على الشاشة الرئيسية وسماح الإشعارات.';
+  }
+  function b64ToBytes(s) {
+    var raw = atob(s.replace(/-/g, '+').replace(/_/g, '/')), out = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+    return out;
+  }
+  function postAlarm(sub, on) {
+    var t = (alarm.time || '07:00').split(':');
+    return fetch(PROXY + '/alarm', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        sub: sub, on: on, hh: +t[0], mm: +t[1], days: alarm.days,
+        tz: (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC')
+      })
+    }).then(function (r) { if (!r.ok) throw 0; });
+  }
+  function alarmSave() {
+    if (!PROXY) { toast('الوسيط غير مفعّل'); return; }
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !window.Notification) {
+      toast('ثبّت التطبيق على الشاشة الرئيسية أولاً (iOS 16.4 أو أحدث)'); return;
+    }
+    if (!alarm.days.length) { toast('اختر يوماً واحداً على الأقل'); return; }
+    alarm.time = $('alarm-time').value || '07:00';
+    alarm.station = $('alarm-station').value;
+    Notification.requestPermission().then(function (perm) {
+      if (perm !== 'granted') throw new Error('perm');
+      return navigator.serviceWorker.ready;
+    }).then(function (reg) {
+      return reg.pushManager.getSubscription().then(function (sub) {
+        return sub || reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(VAPID_PUBLIC) });
+      });
+    }).then(function (sub) {
+      return postAlarm(sub.toJSON(), true);
+    }).then(function () {
+      alarm.on = true; save('alarm', alarm); renderAlarm(); toast('تم تفعيل المنبّه ⏰');
+    }).catch(function (e) {
+      toast(e && e.message === 'perm' ? 'اسمح بالإشعارات من إعدادات الأيفون' : 'تعذّر تفعيل المنبّه');
+    });
+  }
+  function alarmOff() {
+    navigator.serviceWorker.ready.then(function (reg) { return reg.pushManager.getSubscription(); }).then(function (sub) {
+      return sub ? postAlarm(sub.toJSON(), false) : null;
+    }).then(function () {
+      alarm.on = false; save('alarm', alarm); renderAlarm(); toast('أُوقف المنبّه');
+    }, function () { toast('تعذّر إيقاف المنبّه'); });
+  }
+  $('alarm-save').addEventListener('click', alarmSave);
+  $('alarm-off').addEventListener('click', alarmOff);
+  $('alarm-days').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-day]');
+    if (!b) return;
+    var d = +b.getAttribute('data-day'), i = alarm.days.indexOf(d);
+    if (i >= 0) alarm.days.splice(i, 1); else alarm.days.push(d);
+    b.classList.toggle('on');
+  });
+  $('about-btn').addEventListener('click', renderAlarm);
+
+  // الضغط على إشعار المنبّه: زر كبير للتشغيل (Safari يشترط لمسة لبدء الصوت)
+  function showRing() {
+    var st = S.byId[alarm.station] || S.current;
+    if (!st) return;
+    $('alarm-play').textContent = 'تشغيل ' + st.name;
+    $('alarm-ring').classList.remove('hidden');
+  }
+  $('alarm-play').addEventListener('click', function () {
+    $('alarm-ring').classList.add('hidden');
+    play(S.byId[alarm.station] || S.current);
+  });
+  $('alarm-dismiss').addEventListener('click', function () { $('alarm-ring').classList.add('hidden'); });
+  if (/[?&]alarm=1/.test(location.search)) {
+    try { history.replaceState(null, '', location.pathname); } catch (e) { /* ignore */ }
+    showRing();
+  }
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', function (e) { if (e.data && e.data.alarm) showRing(); });
+  }
 
   // AirPlay (يظهر الزر فقط إذا وُجد جهاز AirPlay)
   if (window.WebKitPlaybackTargetAvailabilityEvent) {
