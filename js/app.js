@@ -201,6 +201,7 @@
 
   var STATUS = { idle: 'اضغط للتشغيل', buffering: 'جاري الاتصال…', playing: 'مباشر الآن', paused: 'متوقف', error: 'تعذّر التشغيل' };
 
+  function statusText() { return holding && S.state === 'buffering' ? 'انقطع البث — جاري إعادة الاتصال…' : STATUS[S.state]; }
   var artFor = null;
   function renderPlayer() {
     var s = S.current;
@@ -213,8 +214,8 @@
     $('mini-play').innerHTML = svg(on ? 'pause' : 'play');
     $('np-play').innerHTML = svg(on ? 'pause' : 'play');
     $('mini-name').textContent = s.name;
-    $('mini-status').textContent = S.title && S.state === 'playing' ? S.title : STATUS[S.state];
-    $('np-status').textContent = STATUS[S.state];
+    $('mini-status').textContent = S.title && S.state === 'playing' ? S.title : statusText();
+    $('np-status').textContent = statusText();
     $('np-title').textContent = S.title || '';
     $('np-title').classList.toggle('hidden', !S.title);
     renderSongBtn();
@@ -286,17 +287,21 @@
   }
 
   var watchdog;
+  // نية المستخدم: طالما لم يضغط إيقاف، نعيد الاتصال تلقائياً بعد أي انقطاع (شبكة الجوال تذهب وتعود)
+  var wantPlay = false, playedOk = false, holding = false, retryN = 0, retryTimer, silentUrl = null;
   function setState(st) {
     S.state = st;
     clearTimeout(watchdog);
     if (st !== 'playing' && st !== 'buffering') { clearTimeout(npTimer); S.title = null; }
-    if (st === 'buffering') watchdog = setTimeout(function () { if (S.state === 'buffering') tryNextUrl(); }, BUFFER_WATCHDOG_MS);
+    if (st === 'buffering' && !holding) watchdog = setTimeout(function () { if (S.state === 'buffering') tryNextUrl(); }, BUFFER_WATCHDOG_MS);
     renderPlayer();
     updateMediaSession();
   }
 
-  function play(station, urlIdx) {
+  function play(station, urlIdx, auto) {
     if (!station) return;
+    if (!auto) { wantPlay = true; playedOk = false; retryN = 0; clearTimeout(retryTimer); }
+    holding = false; audio.loop = false;
     S.current = station;
     S.urlIdx = urlIdx || 0;
     clearTimeout(npTimer); S.title = null;
@@ -307,15 +312,55 @@
     if (p && p.catch) p.catch(function (e) { if (e && e.name === 'NotAllowedError') setState('paused'); });
   }
 
+  // صمت قصير يدور أثناء الانتظار: يُبقي جلسة الصوت حيّة فلا يوقف iOS الصفحة في الخلفية قبل عودة الشبكة
+  function silence() {
+    if (silentUrl) return silentUrl;
+    var n = 8000, b = new Uint8Array(44 + n), v = new DataView(b.buffer);
+    function str(o, s) { for (var i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); }
+    str(0, 'RIFF'); v.setUint32(4, 36 + n, true); str(8, 'WAVEfmt '); v.setUint32(16, 16, true);
+    v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, 8000, true); v.setUint32(28, 8000, true);
+    v.setUint16(32, 1, true); v.setUint16(34, 8, true); str(36, 'data'); v.setUint32(40, n, true);
+    for (var i = 44; i < b.length; i++) b[i] = 128;
+    silentUrl = URL.createObjectURL(new Blob([b], { type: 'audio/wav' }));
+    return silentUrl;
+  }
+  function hold() {
+    holding = true; audio.loop = true; audio.src = silence();
+    var p = audio.play();
+    if (p && p.catch) p.catch(function () { /* ignore */ });
+    setState('buffering');
+  }
+  function scheduleResume() {
+    clearTimeout(retryTimer);
+    if (!wantPlay || !S.current) return;
+    var d = [2000, 4000, 7000, 12000][Math.min(retryN, 3)] || 15000;
+    if (retryN > 3) d = 15000;
+    retryTimer = setTimeout(function () {
+      if (!wantPlay || !S.current || (S.state === 'playing' && !holding)) return;
+      if (navigator.onLine === false) { scheduleResume(); return; }
+      retryN++;
+      play(S.current, 0, true);
+    }, d);
+  }
+  function resumeNow() {
+    if (!wantPlay || !S.current || navigator.onLine === false) return;
+    if (!holding && (S.state === 'playing' || S.state === 'buffering')) return;
+    retryN = 0; clearTimeout(retryTimer);
+    play(S.current, 0, true);
+  }
+
   function tryNextUrl() {
     var s = S.current;
     if (!s) return;
-    if (navigator.onLine === false) {      // لا نُحمّل الذنب على المحطة؛ نعيد المحاولة عند عودة الإنترنت
+    var reconnect = wantPlay && playedOk;      // كان يعمل ثم انقطع: نبقى نحاول بدل إعلان المحطة معطّلة
+    if (navigator.onLine === false) {
+      if (reconnect) { hold(); toast('انقطع الإنترنت — سيعود التشغيل تلقائياً'); scheduleResume(); return; }
       audio.pause(); setState('error');
       toast('لا يوجد اتصال بالإنترنت — سأعيد المحاولة تلقائياً');
       return;
     }
-    if (S.urlIdx + 1 < s.urls.length) { toast('المحطة لا تستجيب — جاري التبديل لرابط احتياطي'); play(s, S.urlIdx + 1); return; }
+    if (S.urlIdx + 1 < s.urls.length) { toast('المحطة لا تستجيب — جاري التبديل لرابط احتياطي'); play(s, S.urlIdx + 1, true); return; }
+    if (reconnect) { hold(); toast('انقطع البث — جاري إعادة الاتصال'); scheduleResume(); return; }
     audio.pause();
     S.failed[s.id] = Date.now(); save('failed', S.failed);
     setState('error');
@@ -323,7 +368,10 @@
   }
 
   // البث المباشر: الإيقاف يفصل الاتصال، والاستئناف يعود للبث الحي
-  function stop() { audio.pause(); setState('paused'); }
+  function stop() {
+    wantPlay = false; holding = false; clearTimeout(retryTimer); audio.loop = false;
+    audio.pause(); setState('paused');
+  }
   function toggle() {
     if (!S.current) return;
     if (S.state === 'playing' || S.state === 'buffering') stop(); else play(S.current, 0);
@@ -335,10 +383,13 @@
     play(list[(i + d + list.length) % list.length]);
   }
 
-  window.addEventListener('online', function () { if (S.current && S.state === 'error') play(S.current, 0); });
+  window.addEventListener('online', function () { if (S.current && S.state === 'error') play(S.current, 0, true); else resumeNow(); });
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) resumeNow(); });
 
   audio.addEventListener('playing', function () {
+    if (holding) return;                       // هذا صوت الانتظار الصامت لا البث
     var s = S.current;
+    playedOk = true; retryN = 0;
     if (S.failed[s.id]) { delete S.failed[s.id]; save('failed', S.failed); }
     S.recent = [snapshot(s)].concat(S.recent.filter(function (r) { return r.id !== s.id; })).slice(0, RECENT_MAX);
     save('recent', S.recent);
@@ -346,11 +397,10 @@
     renderRecent();
     pollNowPlaying();
   });
-  audio.addEventListener('waiting', function () { if (S.state === 'playing') setState('buffering'); });
+  audio.addEventListener('waiting', function () { if (S.state === 'playing' && !holding) setState('buffering'); });
   audio.addEventListener('pause', function () { if (S.state === 'playing' || S.state === 'buffering') setState('paused'); });
-  audio.addEventListener('error', function () { if (S.state === 'buffering' || S.state === 'playing') tryNextUrl(); });
-  audio.addEventListener('ended', function () { if (S.current) play(S.current, S.urlIdx); });
-
+  audio.addEventListener('error', function () { if ((S.state === 'buffering' || S.state === 'playing') && !holding) tryNextUrl(); });
+  audio.addEventListener('ended', function () { if (S.current && !holding) play(S.current, S.urlIdx, true); });
   function toggleFav(s) {
     if (!s) return;
     if (isFav(s)) { S.favs = S.favs.filter(function (f) { return f.id !== s.id; }); toast('أُزيلت من المفضلة'); }
