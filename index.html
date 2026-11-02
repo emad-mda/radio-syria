@@ -130,6 +130,7 @@
 
       <h3>التلفاز</h3>
       <p class="muted small">اكتب الرمز الظاهر على التلفاز (الإعدادات ← رمز الربط)، ثم اضغط «على التلفاز» في شاشة التشغيل.</p>
+      <button class="wide-btn" id="scan-btn">مسح رمز QR من التلفاز</button>
       <input id="cast-code" class="field" inputmode="numeric" maxlength="6" placeholder="رمز الربط (6 أرقام)" autocomplete="off">
       <button class="wide-btn ghost" id="cast-stop">إيقاف البث على التلفاز</button>
 
@@ -158,7 +159,7 @@
       <p class="muted small" id="stat-note"></p>
       <button class="wide-btn" id="refresh-btn">تحديث دليل المحطات</button>
       <button class="wide-btn ghost" id="clear-btn">مسح «استمعت مؤخراً»</button>
-      <p class="muted small">النسخة 1.8 · نسخة الأيفون من تطبيق شاشة LG</p>
+      <p class="muted small">النسخة 1.9 · نسخة الأيفون من تطبيق شاشة LG</p>
     </div>
   </div>
 
@@ -186,6 +187,24 @@
         <button class="ctl" data-rc="volup" aria-label="رفع الصوت"><b>+</b></button>
       </div>
     </div>
+  </div>
+
+  <!-- مسح رمز الربط من شاشة التلفاز -->
+  <div class="sheet" id="scan" aria-hidden="true">
+    <div class="sheet-bg" data-close="scan"></div>
+    <div class="sheet-body about-body">
+      <button class="grab" data-close="scan" aria-label="إغلاق"><span data-icon="chevron"></span></button>
+      <h2>مسح رمز التلفاز</h2>
+      <div class="scan-box"><video id="scan-video" playsinline muted></video><div class="scan-frame"></div></div>
+      <p class="muted small" id="scan-note">وجّه الكاميرا نحو رمز QR على شاشة التلفاز (الإعدادات ← ربط الأيفون).</p>
+    </div>
+  </div>
+
+  <div id="pair-ok" class="hidden">
+    <div class="ok-mark">✓</div>
+    <b>تم الربط بالتلفاز بنجاح</b>
+    <p id="pair-ok-note"></p>
+    <button class="wide-btn" id="pair-ok-close">تمام</button>
   </div>
 
   <div id="toast"></div>
