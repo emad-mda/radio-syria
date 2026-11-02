@@ -247,6 +247,22 @@ body:not(.is-playing) .mini .eq { display: none; }
 .song a { flex: 1; min-width: 0; color: var(--text); text-decoration: none; font-size: 14px; line-height: 1.5; }
 .song small { display: block; color: var(--muted); font-size: 12px; }
 .song button { color: var(--muted); font-size: 18px; padding: 4px 8px; }
+/* مقدمة التطبيق */
+#intro { position: fixed; inset: 0; z-index: 200; background: #020305; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; transition: opacity 0.6s ease; }
+#intro.out { opacity: 0; pointer-events: none; }
+.intro-aura { position: absolute; width: 520px; height: 520px; border-radius: 50%; background: radial-gradient(circle, rgba(16, 185, 129, 0.35) 0%, transparent 65%); animation: introAura 2.6s ease-out both; }
+.intro-logo { position: relative; width: 120px; height: 120px; border-radius: 28px; box-shadow: 0 0 60px rgba(16, 185, 129, 0.45); animation: introLogo 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+.intro-title { position: relative; font-size: 36px; font-weight: 900; letter-spacing: 0.5px; animation: introUp 0.7s 0.45s ease-out both; }
+.intro-sub { position: relative; font-size: 15px; color: var(--muted); animation: introUp 0.7s 0.7s ease-out both; }
+.intro-eq { position: relative; display: flex; align-items: flex-end; gap: 5px; height: 34px; margin-top: 18px; animation: introUp 0.6s 0.95s ease-out both; }
+.intro-eq i { width: 5px; height: 100%; border-radius: 3px; background: var(--accent); transform-origin: bottom; animation: introBar 0.9s ease-in-out infinite alternate; }
+.intro-eq i:nth-child(2) { animation-delay: 0.12s; } .intro-eq i:nth-child(3) { animation-delay: 0.27s; } .intro-eq i:nth-child(4) { animation-delay: 0.05s; }
+.intro-eq i:nth-child(5) { animation-delay: 0.33s; } .intro-eq i:nth-child(6) { animation-delay: 0.18s; } .intro-eq i:nth-child(7) { animation-delay: 0.4s; }
+@keyframes introLogo { from { opacity: 0; transform: scale(0.5) rotate(-8deg); } to { opacity: 1; transform: none; } }
+@keyframes introUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes introAura { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: scale(1.1); } }
+@keyframes introBar { from { transform: scaleY(0.2); } to { transform: scaleY(1); } }
+@media (prefers-reduced-motion: reduce) { #intro * { animation: none !important; } }
 .slots { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .slots label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
 .slots .field { padding: 10px 6px; font-size: 14px; }
