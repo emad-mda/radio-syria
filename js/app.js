@@ -753,6 +753,73 @@
   });
   document.addEventListener('visibilitychange', function () { if (!document.hidden) syncAll(); });
 
+  // ---------- الربط بالتلفاز عبر QR ----------
+  var pairTimer;
+  function pairWith(code) {
+    if (!/^\d{6}$/.test(code)) { toast('رمز غير صالح'); return; }
+    save('castCode', code); $('cast-code').value = code;
+    favBase = null; save('favBase', null);
+    if (!PROXY) { toast('الوسيط غير مفعّل'); return; }
+    fetch(PROXY + '/cast/' + code + '/pair', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })
+      .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+      .then(function (r) {
+        $('pair-ok-note').textContent = r.tvOnline
+          ? 'التلفاز متصل. يمكنك الآن إرسال المحطات إليه والتحكم به ومزامنة المفضلة.'
+          : 'حُفظ الرمز. افتح تطبيق راديو سوريا على التلفاز ليكتمل الاتصال.';
+        $('pair-ok').classList.remove('hidden');
+        clearTimeout(pairTimer); pairTimer = setTimeout(function () { $('pair-ok').classList.add('hidden'); }, 5000);
+        syncAll();
+      }, function () { toast('تعذّر الاتصال بالوسيط — لم يتم الربط'); });
+  }
+  $('pair-ok-close').addEventListener('click', function () { clearTimeout(pairTimer); $('pair-ok').classList.add('hidden'); });
+  (function pairFromLink() {                      // فتح الرابط من كاميرا الأيفون مباشرة
+    var m = /[?&]pair=(\d{6})/.exec(location.search);
+    if (!m) return;
+    try { history.replaceState(null, '', location.pathname); } catch (e) { /* ignore */ }
+    pairWith(m[1]);
+  })();
+
+  var scanStream = null, scanBusy = false;
+  function scanStop() {
+    scanBusy = false;
+    if (scanStream) { scanStream.getTracks().forEach(function (t) { t.stop(); }); scanStream = null; }
+    $('scan-video').srcObject = null;
+  }
+  function loadJsQR() {
+    if (window.jsQR) return Promise.resolve();
+    return new Promise(function (res, rej) {
+      var s = document.createElement('script'); s.src = 'js/jsQR.js'; s.onload = res; s.onerror = rej; document.head.appendChild(s);
+    });
+  }
+  function scanStart() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { toast('الكاميرا غير متاحة هنا. استخدم كاميرا الأيفون العادية أو اكتب الرمز'); return; }
+    closeSheet('about'); openSheet('scan');
+    $('scan-note').textContent = 'جاري تشغيل الكاميرا…';
+    Promise.all([loadJsQR(), navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false })]).then(function (r) {
+      scanStream = r[1];
+      var v = $('scan-video'); v.srcObject = scanStream; v.play();
+      $('scan-note').textContent = 'وجّه الكاميرا نحو رمز QR على شاشة التلفاز (الإعدادات ← ربط الأيفون).';
+      var cv = document.createElement('canvas'), cx = cv.getContext('2d', { willReadFrequently: true });
+      scanBusy = true;
+      (function loop() {
+        if (!scanBusy) return;
+        if (!$('scan').classList.contains('open')) { scanStop(); return; }
+        if (v.videoWidth) {
+          var w = 480, h = Math.round(480 * v.videoHeight / v.videoWidth);
+          cv.width = w; cv.height = h; cx.drawImage(v, 0, 0, w, h);
+          var q = window.jsQR(cx.getImageData(0, 0, w, h).data, w, h);
+          var m = q && (/[?&]pair=(\d{6})/.exec(q.data) || /^(\d{6})$/.exec(q.data));
+          if (m) { scanStop(); closeSheet('scan'); pairWith(m[1]); return; }
+        }
+        setTimeout(loop, 160);
+      })();
+    }).catch(function (e) {
+      scanStop(); closeSheet('scan');
+      toast(e && e.name === 'NotAllowedError' ? 'اسمح للتطبيق باستخدام الكاميرا من إعدادات الأيفون' : 'تعذّر تشغيل الكاميرا');
+    });
+  }
+  $('scan-btn').addEventListener('click', scanStart);
+
   // ---------- ريموت التلفاز ----------
   var remoteTimer;
   function remoteTick() {
