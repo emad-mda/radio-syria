@@ -7,8 +7,8 @@ window.CURATED_STATIONS = [
   {
     id: 'damascus', name: 'إذاعة دمشق', en: 'Damascus Radio', mono: 'دمشق',
     cat: 'syria', gov: 'دمشق', genre: 'منوعات وطرب', color: '#ef4444',
-    // الرابط الحكومي احتياطي — قد لا يعمل إلا من داخل سوريا
-    urls: ['https://stream.damasradio.fm/radio', 'http://radioliveb.rtv.gov.sy:8002/RadioDimshq'],
+    // بث إذاعة دمشق متوقف حالياً على خادمها (Icecast بلا مصدر)؛ رابط HLS من موقعها الرسمي وروابط حكومية احتياطية قد تعود للعمل
+    urls: ['https://stream.damasradio.fm/radio', 'https://radiodamascus.ortas.live/RDimshq/RDimshqAudioLive/playlist.m3u8', 'http://radioliveb.rtv.gov.sy:8002/RadioDimshq'],
     logo: '', codec: 'MP3', bitrate: 128,
     match: /damascus radio|damasradio/i
   },
