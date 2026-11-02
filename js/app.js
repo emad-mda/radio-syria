@@ -26,7 +26,7 @@
 
   var API_MIRRORS = ['https://de1.api.radio-browser.info', 'https://fi1.api.radio-browser.info', 'https://all.api.radio-browser.info'];
   var FAILED_TTL_MS = 6 * 60 * 60 * 1000;
-  var BUFFER_WATCHDOG_MS = 15000;
+  var BUFFER_WATCHDOG_MS = 8000;
   var SLEEP_STEPS = [0, 15, 30, 60, 90];
   var RECENT_MAX = 12;
   var GROUP_COLORS = ['#34d399', '#22d3ee', '#fbbf24', '#f87171', '#c084fc', '#60a5fa', '#f472b6', '#a3e635'];
@@ -336,7 +336,7 @@
     var d = [2000, 4000, 7000, 12000][Math.min(retryN, 3)] || 15000;
     if (retryN > 3) d = 15000;
     retryTimer = setTimeout(function () {
-      if (!wantPlay || !S.current || (S.state === 'playing' && !holding)) return;
+      if (!wantPlay || !S.current || holding || S.state === 'playing') return;
       if (navigator.onLine === false) { scheduleResume(); return; }
       retryN++;
       play(S.current, 0, true);
@@ -401,6 +401,32 @@
   audio.addEventListener('pause', function () { if (S.state === 'playing' || S.state === 'buffering') setState('paused'); });
   audio.addEventListener('error', function () { if ((S.state === 'buffering' || S.state === 'playing') && !holding) tryNextUrl(); });
   audio.addEventListener('ended', function () { if (S.current && !holding) play(S.current, S.urlIdx, true); });
+
+  // نبض كل ثانيتين: iOS لا يرسل دائماً حدث online ولا يعلن الخطأ عند اختفاء تغطية الجوال، فنراقب الواقع بدل الأحداث
+  //  - البث «يعمل» لكن الوقت لا يتحرّك ≈6 ث ← نعيد الاتصال
+  //  - في وضع الانتظار نفحص الوسيط (طلب صغير)؛ إن ردّ فالشبكة عادت ← نشغّل
+  var lastT = -1, stallN = 0, probing = false;
+  function probe() {
+    if (probing || !PROXY) { if (!PROXY && navigator.onLine !== false) { retryN = 0; play(S.current, 0, true); } return; }
+    probing = true;
+    var ctl = new AbortController(), t = setTimeout(function () { ctl.abort(); }, 4000);
+    fetch(PROXY + '/?p=' + Date.now(), { cache: 'no-store', signal: ctl.signal }).then(function (r) {
+      clearTimeout(t); probing = false;
+      if (r.ok && holding && wantPlay && S.current) { retryN = 0; play(S.current, 0, true); }
+    }, function () { clearTimeout(t); probing = false; });
+  }
+  setInterval(function () {
+    if (!wantPlay || !S.current) { stallN = 0; return; }
+    if (holding) { probe(); return; }
+    if (S.state === 'playing') {
+      if (audio.paused || audio.currentTime === lastT) stallN++; else stallN = 0;
+      lastT = audio.currentTime;
+      if (stallN >= 3) { stallN = 0; play(S.current, S.urlIdx, true); }
+    } else if ((S.state === 'paused' || S.state === 'error') && playedOk && navigator.onLine !== false) {
+      stallN++;
+      if (stallN >= 2) { stallN = 0; retryN = 0; play(S.current, 0, true); }
+    } else { stallN = 0; }
+  }, 2000);
   function toggleFav(s) {
     if (!s) return;
     if (isFav(s)) { S.favs = S.favs.filter(function (f) { return f.id !== s.id; }); toast('أُزيلت من المفضلة'); }
@@ -896,6 +922,19 @@
       }, attempt);
     })();
   }
+
+  // ---------- مقدمة التطبيق (مرة لكل تشغيل، وتُتجاوز عند فتح تذكير) ----------
+  (function intro() {
+    var el = $('intro');
+    if (!el) return;
+    var skip = /[?&]alarm=1/.test(location.search);
+    try { if (sessionStorage.getItem('rsm.intro')) skip = true; sessionStorage.setItem('rsm.intro', '1'); } catch (e) { /* ignore */ }
+    if (skip) { el.remove(); return; }
+    var closed = false;
+    function done() { if (closed) return; closed = true; el.classList.add('out'); setTimeout(function () { el.remove(); }, 700); }
+    el.addEventListener('click', done);
+    setTimeout(done, 2600);
+  })();
 
   // ---------- البدء ----------
   paintIcons();
