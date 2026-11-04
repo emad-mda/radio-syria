@@ -14,6 +14,7 @@
     rec: '<circle cx="12" cy="12" r="6"/>',
     airplay: '<path d="M3 4h18a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-3l-1.7-2H20V6H4v9h2.7L5 17H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm9 9 6 8H6z"/>',
     search: '<path d="M10.5 3a7.5 7.5 0 0 1 6 12l4.3 4.3-1.5 1.5-4.3-4.3A7.5 7.5 0 1 1 10.5 3zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11z"/>',
+    gear: '<path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm8.3 5.2-1.7-.3a6.9 6.9 0 0 0-.6-1.4l1-1.4a.8.8 0 0 0-.1-1l-1.2-1.2a.8.8 0 0 0-1-.1l-1.4 1c-.4-.3-.9-.5-1.4-.6l-.3-1.7a.8.8 0 0 0-.8-.7h-1.7a.8.8 0 0 0-.8.7l-.3 1.7c-.5.1-1 .3-1.4.6l-1.4-1a.8.8 0 0 0-1 .1L5.1 9.6a.8.8 0 0 0-.1 1l1 1.4c-.3.4-.5.9-.6 1.4l-1.7.3a.8.8 0 0 0-.7.8v1.7c0 .4.3.8.7.8l1.7.3c.1.5.3 1 .6 1.4l-1 1.4a.8.8 0 0 0 .1 1l1.2 1.2c.3.3.7.3 1 .1l1.4-1c.4.3.9.5 1.4.6l.3 1.7c.1.4.4.7.8.7h1.7c.4 0 .8-.3.8-.7l.3-1.7c.5-.1 1-.3 1.4-.6l1.4 1c.3.2.7.2 1-.1l1.2-1.2c.3-.3.3-.7.1-1l-1-1.4c.3-.4.5-.9.6-1.4l1.7-.3c.4-.1.7-.4.7-.8v-1.7c0-.4-.3-.8-.7-.8z"/>',
     info: '<path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm-1 8v7h2v-7zm1-4a1.3 1.3 0 1 0 0 2.6A1.3 1.3 0 0 0 12 6z"/>',
     close: '<path d="m6.4 5 5.6 5.6L17.6 5 19 6.4 13.4 12l5.6 5.6-1.4 1.4-5.6-5.6L6.4 19 5 17.6l5.6-5.6L5 6.4z"/>',
     chevron: '<path d="M5.6 8.6 12 15l6.4-6.4L19.8 10 12 17.8 4.2 10z"/>',
@@ -35,6 +36,9 @@
   var $ = function (id) { return document.getElementById(id); };
   function load(k, f) { try { var v = localStorage.getItem('rsm.' + k); return v === null ? f : JSON.parse(v); } catch (e) { return f; } }
   function save(k, v) { try { localStorage.setItem('rsm.' + k, JSON.stringify(v)); } catch (e) { /* ignore */ } }
+  // تفضيلات المظهر والأقسام (صفحة الإعدادات)
+  var PREFS_DEF = { theme: 'dark', accent: 'auto', font: 'm', density: 'comfy', glow: true, calm: false, showRecent: true, showTop: true, showChips: true, showSearch: true };
+  var prefs = (function () { var o = {}, s = load('prefs', {}); for (var k in PREFS_DEF) o[k] = s && s[k] !== undefined ? s[k] : PREFS_DEF[k]; return o; })();
   function esc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
   // Safari يمنع تشغيل روابط http من صفحة https، لذا نبقي روابط https فقط
@@ -176,7 +180,7 @@
   }
 
   function renderRecent() {
-    var show = S.tab === 'syria' && !S.query && S.recent.length > 0;
+    var show = prefs.showRecent && S.tab === 'syria' && !S.query && S.recent.length > 0;
     $('recent-wrap').classList.toggle('hidden', !show);
     if (!show) return;
     $('recent').innerHTML = S.recent.map(function (r) {
@@ -191,12 +195,13 @@
 
   // ---------- المشغّل ----------
   function setAccent(hex) {
+    if (prefs.accent !== 'auto') hex = prefs.accent;      // لون ثابت اختاره المستخدم بدل لون المحطة
     var n = parseInt(hex.slice(1), 16);
     var rgb = [(n >> 16) & 255, (n >> 8) & 255, n & 255].join(',');
     document.documentElement.style.setProperty('--accent', hex);
     document.documentElement.style.setProperty('--accent-soft', 'rgba(' + rgb + ',0.2)');
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', '#020305');
+    if (meta) meta.setAttribute('content', prefs.theme === 'black' ? '#000000' : '#020305');
   }
 
   var STATUS = { idle: 'اضغط للتشغيل', buffering: 'جاري الاتصال…', playing: 'مباشر الآن', paused: 'متوقف', error: 'تعذّر التشغيل' };
@@ -852,7 +857,7 @@
       .sort(function (a, b) { return stats.s[b] - stats.s[a]; }).slice(0, 5).map(function (id) { return S.byId[id]; });
   }
   function renderTop() {
-    var list = topStations(), show = S.tab === 'syria' && !S.query && list.length > 0;
+    var list = topStations(), show = prefs.showTop && S.tab === 'syria' && !S.query && list.length > 0;
     $('top-wrap').classList.toggle('hidden', !show);
     if (!show) return;
     $('top').innerHTML = list.map(function (s) {
@@ -990,6 +995,70 @@
     })();
   }
 
+  // ---------- صفحة الإعدادات: المظهر وإظهار/إخفاء الأقسام ----------
+  var ACCENTS = [['auto', 'حسب المحطة'], ['#10b981', 'أخضر'], ['#3b82f6', 'أزرق'], ['#f59e0b', 'ذهبي'], ['#a855f7', 'بنفسجي'], ['#ec4899', 'وردي'], ['#ef4444', 'أحمر']];
+  var PREF_UI = [
+    { title: 'المظهر', items: [
+      { k: 'theme', label: 'السمة', seg: [['dark', 'داكن'], ['black', 'أسود تماماً']] },
+      { k: 'accent', label: 'لون التطبيق', swatches: true },
+      { k: 'font', label: 'حجم الخط', seg: [['s', 'صغير'], ['m', 'متوسط'], ['l', 'كبير']] },
+      { k: 'density', label: 'كثافة القائمة', seg: [['comfy', 'مريحة'], ['tight', 'مضغوطة']] },
+      { k: 'glow', label: 'توهّج الخلفية', sw: true },
+      { k: 'calm', label: 'تقليل الحركة', sw: true }
+    ] },
+    { title: 'الأقسام', items: [
+      { k: 'showRecent', label: 'آخر ما استمعت', sw: true },
+      { k: 'showTop', label: 'الأكثر استماعاً', sw: true },
+      { k: 'showChips', label: 'شرائح المحافظات', sw: true },
+      { k: 'showSearch', label: 'شريط البحث', sw: true }
+    ] }
+  ];
+  function applyPrefs() {
+    var r = document.documentElement.classList;
+    r.toggle('theme-black', prefs.theme === 'black');
+    ['s', 'm', 'l'].forEach(function (f) { r.toggle('fs-' + f, prefs.font === f); });
+    r.toggle('tight', prefs.density === 'tight');
+    r.toggle('no-glow', !prefs.glow);
+    r.toggle('calm', !!prefs.calm);
+    r.toggle('hide-chips', !prefs.showChips);
+    r.toggle('hide-search', !prefs.showSearch);
+    if (!prefs.showChips && S.filter !== 'الكل') S.filter = 'الكل';
+    if (!prefs.showSearch && S.query) { S.query = ''; $('q').value = ''; }
+    // اللون: ثابت أو حسب المحطة الحالية
+    artFor = null;
+    if (prefs.accent !== 'auto' || !S.current) setAccent(prefs.accent !== 'auto' ? prefs.accent : '#10b981');
+    renderList();
+    renderPlayer();
+  }
+  function renderPrefs() {
+    $('prefs').innerHTML = PREF_UI.map(function (sec) {
+      return '<h3>' + sec.title + '</h3>' + sec.items.map(function (it) {
+        var cur = prefs[it.k], ctl;
+        if (it.sw) ctl = '<button type="button" class="switch' + (cur ? ' on' : '') + '" data-pref="' + it.k + '" data-val="' + (cur ? '0' : '1') + '" role="switch" aria-checked="' + !!cur + '"><i></i></button>';
+        else if (it.swatches) ctl = '<div class="swatches">' + ACCENTS.map(function (a) {
+          return '<button type="button" class="sw' + (cur === a[0] ? ' on' : '') + (a[0] === 'auto' ? ' auto' : '') + '" data-pref="accent" data-val="' + a[0] + '" aria-label="' + a[1] + '"' + (a[0] === 'auto' ? '' : ' style="background:' + a[0] + '"') + '></button>';
+        }).join('') + '</div>';
+        else ctl = '<div class="seg">' + it.seg.map(function (o) {
+          return '<button type="button" class="' + (cur === o[0] ? 'on' : '') + '" data-pref="' + it.k + '" data-val="' + o[0] + '">' + o[1] + '</button>';
+        }).join('') + '</div>';
+        return '<div class="pref"><span>' + it.label + '</span>' + ctl + '</div>';
+      }).join('');
+    }).join('');
+  }
+  $('prefs').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-pref]');
+    if (!b) return;
+    var k = b.getAttribute('data-pref'), v = b.getAttribute('data-val'), def = PREFS_DEF[k];
+    prefs[k] = typeof def === 'boolean' ? v === '1' : v;
+    save('prefs', prefs); renderPrefs(); applyPrefs();
+  });
+  $('prefs-btn').addEventListener('click', function () { renderPrefs(); openSheet('prefs-sheet'); });
+  $('prefs-more').addEventListener('click', function () { closeSheet('prefs-sheet'); renderAlarm(); openSheet('about'); });
+  $('prefs-reset').addEventListener('click', function () {
+    for (var k in PREFS_DEF) prefs[k] = PREFS_DEF[k];
+    save('prefs', prefs); renderPrefs(); applyPrefs(); toast('أُعيدت الإعدادات الافتراضية');
+  });
+
   // ---------- مقدمة التطبيق (مرة لكل تشغيل، وتُتجاوز عند فتح تذكير) ----------
   (function intro() {
     var el = $('intro');
@@ -1005,6 +1074,14 @@
 
   // ---------- البدء ----------
   paintIcons();
+  (function earlyPrefs() {                     // نُطبّق الأصناف قبل أول رسم لتجنّب وميض المظهر
+    var r = document.documentElement.classList;
+    r.toggle('theme-black', prefs.theme === 'black'); r.add('fs-' + prefs.font);
+    r.toggle('tight', prefs.density === 'tight'); r.toggle('no-glow', !prefs.glow); r.toggle('calm', !!prefs.calm);
+    r.toggle('hide-chips', !prefs.showChips); r.toggle('hide-search', !prefs.showSearch);
+    if (!prefs.showChips) S.filter = 'الكل';
+    if (prefs.accent !== 'auto') setAccent(prefs.accent);
+  })();
   $('hidden-note').textContent = hiddenCount
     ? hiddenCount + ' محطات لا تعمل هنا: إما تبث بروابط غير آمنة (http) يمنعها Safari، أو لا تفتح إلا من داخل سوريا. بعضها يعمل على تطبيق التلفاز.'
     : '';
