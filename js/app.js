@@ -566,7 +566,7 @@
   function sendCast(cmd) {
     var code = load('castCode', '');
     if (!PROXY) { toast('الوسيط غير مفعّل'); return; }
-    if (!/^\d{6}$/.test(code)) { openSheet('about'); toast('اكتب رمز الربط من التلفاز أولاً'); return; }
+    if (!/^\d{10}$/.test(code)) { openSheet('about'); toast('اكتب رمز الربط من التلفاز أولاً'); return; }
     if (cmd === 'play' && !S.current) return;
     fetch(PROXY + '/cast/' + code, {
       method: 'POST', headers: { 'content-type': 'application/json' },
@@ -581,7 +581,7 @@
   $('cast-stop').addEventListener('click', function () { sendCast('stop'); });
   $('cast-code').value = load('castCode', '');
   $('cast-code').addEventListener('input', function () {
-    this.value = this.value.replace(/\D/g, '').slice(0, 6);
+    this.value = this.value.replace(/\D/g, '').slice(0, 10);
     save('castCode', this.value);
   });
 
@@ -710,7 +710,7 @@
   // ---------- مزامنة المفضلة مع التلفاز + محطة كل فترة من اليوم ----------
   var favBase = load('favBase', null);
   var SLOT_KEYS = ['m', 'a', 'e', 'n'];
-  function castCodeOk() { return /^\d{6}$/.test(load('castCode', '')); }
+  function castCodeOk() { return /^\d{10}$/.test(load('castCode', '')); }
   function syncPost(body) {
     return fetch(PROXY + '/sync/' + load('castCode', ''), {
       method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body)
@@ -756,7 +756,7 @@
   // ---------- الربط بالتلفاز عبر QR ----------
   var pairTimer;
   function pairWith(code) {
-    if (!/^\d{6}$/.test(code)) { toast('رمز غير صالح'); return; }
+    if (!/^\d{10}$/.test(code)) { toast('رمز غير صالح'); return; }
     save('castCode', code); $('cast-code').value = code;
     favBase = null; save('favBase', null);
     if (!PROXY) { toast('الوسيط غير مفعّل'); return; }
@@ -773,7 +773,7 @@
   }
   $('pair-ok-close').addEventListener('click', function () { clearTimeout(pairTimer); $('pair-ok').classList.add('hidden'); });
   (function pairFromLink() {                      // فتح الرابط من كاميرا الأيفون مباشرة
-    var m = /[?&]pair=(\d{6})/.exec(location.search);
+    var m = /[?&]pair=(\d{10})/.exec(location.search);
     if (!m) return;
     try { history.replaceState(null, '', location.pathname); } catch (e) { /* ignore */ }
     pairWith(m[1]);
@@ -808,7 +808,7 @@
           var w = 480, h = Math.round(480 * v.videoHeight / v.videoWidth);
           cv.width = w; cv.height = h; cx.drawImage(v, 0, 0, w, h);
           var q = window.jsQR(cx.getImageData(0, 0, w, h).data, w, h);
-          var m = q && (/[?&]pair=(\d{6})/.exec(q.data) || /^(\d{6})$/.exec(q.data));
+          var m = q && (/[?&]pair=(\d{10})/.exec(q.data) || /^(\d{10})$/.exec(q.data));
           if (m) { scanStop(); closeSheet('scan'); pairWith(m[1]); return; }
         }
         setTimeout(loop, 160);
@@ -864,7 +864,7 @@
   }
 
   // ---------- تسجيل البث (يُحفظ في الأيفون) ----------
-  var REC_MAX_MS = 60 * 60 * 1000;
+  var REC_MAX_MS = 60 * 60 * 1000, REC_MAX_BYTES = 80 * 1048576;   // سقف الذاكرة: التسجيل يُجمَّع كله في RAM
   var rec = null, recFile = null;
   function recName(station, ext) {
     var d = new Date(), p = function (n) { return String(n).padStart(2, '0'); };
@@ -894,7 +894,7 @@
     if (!PROXY || NP_IDS.indexOf(s.id) < 0) { toast('التسجيل غير متاح لهذه المحطة'); return; }
     recFile = null;
     var r = rec = { station: s, chunks: [], bytes: 0, t0: Date.now(), ctl: new AbortController(), type: '' };
-    r.timer = setInterval(function () { if (Date.now() - r.t0 > REC_MAX_MS) recStop(); else renderRec(); }, 1000);
+    r.timer = setInterval(function () { if (Date.now() - r.t0 > REC_MAX_MS || r.bytes > REC_MAX_BYTES) recStop(); else renderRec(); }, 1000);
     fetch(PROXY + '/stream/' + encodeURIComponent(s.id), { signal: r.ctl.signal }).then(function (res) {
       if (!res.ok || !res.body) throw 0;
       r.type = res.headers.get('content-type') || '';
