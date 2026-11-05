@@ -1,5 +1,6 @@
 (function () {
   'use strict';
+  var RS = window.RS = { hooks: {} };            // جسر للملحقات (extras.js)
 
   var ICONS = {
     play: '<path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/>',
@@ -136,8 +137,9 @@
   }
 
   function renderList() {
-    var base = S.tab === 'favs' ? S.favs : catList(S.tab);
-    $('tab-title').textContent = TAB_TITLES[S.tab];
+    var favBase = S.tab === 'favs' && RS.hooks.favBase ? RS.hooks.favBase(S.favs) : S.favs;
+    var base = S.tab === 'favs' ? favBase : catList(S.tab);
+    $('tab-title').textContent = (RS.hooks.title2 && RS.hooks.title2(S.tab)) || TAB_TITLES[S.tab];
 
     // الشرائح (محافظات / دول)
     if (S.tab === 'favs' || S.query) { $('chips').innerHTML = ''; }
@@ -177,6 +179,7 @@
     } else empty.classList.add('hidden');
 
     renderRecent();
+    if (RS.hooks.after) RS.hooks.after(list);
   }
 
   function renderRecent() {
@@ -279,6 +282,7 @@
     S.title = t || null;
     renderPlayer();
     updateMediaSession();
+    if (RS.hooks.title) RS.hooks.title(S.title, S.current);
   }
   function pollNowPlaying() {
     clearTimeout(npTimer);
@@ -1108,6 +1112,15 @@
     applyStatus(st);
     renderList();
   }, function () { /* لا يوجد فحص بعد */ });
+
+  RS.S = S; RS.audio = audio; RS.play = play; RS.stop = stop; RS.toggle = toggle; RS.step = step; RS.toast = toast;
+  RS.openSheet = openSheet; RS.closeSheet = closeSheet; RS.load = load; RS.save = save; RS.esc = esc; RS.svg = svg;
+  RS.findStation = findStation; RS.renderList = renderList; RS.renderPlayer = renderPlayer; RS.prefs = prefs;
+  RS.PREFS_DEF = PREFS_DEF; RS.PROXY = PROXY; RS.paintIcons = paintIcons; RS.applyPrefs = applyPrefs;
+  RS.renderPrefs = renderPrefs; RS.deadIds = deadIds; RS.snapshot = snapshot; RS.quality = quality;
+  RS.STATUS = STATUS; RS.TAB_TITLES = TAB_TITLES; RS.PREF_UI = PREF_UI;
+  RS.ready = true;
+  if (RS.onReady) RS.onReady();
 
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
     navigator.serviceWorker.register('sw.js').catch(function () { /* ignore */ });

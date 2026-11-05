@@ -323,3 +323,27 @@ body:not(.is-playing) .mini .eq { display: none; }
 .fs-l .name { font-size: 18.5px; } .fs-l .sub { font-size: 14.5px; } .fs-l .chip { font-size: 16px; } .fs-l .tile b { font-size: 14.5px; } .fs-l .mini-name { font-size: 18px; } .fs-l .np-title { font-size: 19px; }
 .tight .row { padding: 4px 8px; }
 .tight .row .art { width: 44px; height: 44px; border-radius: 11px; }
+/* ملحقات: سجل، قوائم، سيارة */
+.xlist { display: flex; flex-direction: column; gap: 8px; text-align: start; max-height: 48vh; overflow: auto; }
+.xrow { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.05); }
+.xmeta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: start; }
+.xmeta b { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.xmeta span { font-size: 12.5px; color: #94a3b8; }
+.xbtn { padding: 7px 14px; border-radius: 10px; background: var(--accent-soft); color: var(--accent); font-weight: 800; font-size: 13px; text-decoration: none; }
+.xsel, #hist-q { width: 100%; padding: 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.07); color: var(--text); border: 0; font: inherit; font-size: 15px; }
+.wide-btn.pick.on { background: var(--accent-soft); color: var(--accent); }
+.mic { position: absolute; inset-inline-end: 10px; top: 50%; transform: translateY(-50%); font-size: 18px; background: none; }
+.search { position: relative; }
+.mv { display: inline-flex; flex-direction: column; gap: 2px; }
+.mv button { font-size: 11px; line-height: 1; padding: 5px 9px; border-radius: 7px; background: rgba(255, 255, 255, 0.1); color: var(--text); }
+#car { position: fixed; inset: 0; z-index: 80; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 24px; text-align: center; }
+#car.open { display: flex; }
+.car-x { position: absolute; top: calc(var(--safe-t, 0px) + 16px); inset-inline-start: 16px; font-size: 28px; color: var(--text); background: rgba(255, 255, 255, 0.1); width: 54px; height: 54px; border-radius: 27px; }
+.car-name { font-size: 34px; font-weight: 900; }
+.car-title { font-size: 20px; color: #94a3b8; min-height: 28px; }
+.car-btns { display: flex; gap: 20px; align-items: center; margin-top: 18px; }
+.car-btns button { width: 110px; height: 110px; border-radius: 55px; background: rgba(255, 255, 255, 0.1); color: var(--text); display: flex; align-items: center; justify-content: center; }
+.car-btns button.big { width: 150px; height: 150px; border-radius: 75px; background: var(--accent); color: #04120c; }
+.car-btns svg { width: 48px; height: 48px; fill: currentColor; }
+.car-btns .big svg { width: 66px; height: 66px; }
+.np-actions svg { fill: currentColor; }
