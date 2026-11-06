@@ -400,3 +400,7 @@ body.on-home .brand p { display: none; }
 .tabs { border-top: 0; position: fixed; }
 .tabs::before { content: ''; position: absolute; top: 0; left: 4%; right: 4%; height: 1.500px; background: linear-gradient(to right, rgba(212, 169, 78, 0), #d4a94e 20%, #d4a94e 80%, rgba(212, 169, 78, 0)); }
 .wave-cv { display: block; width: 100%; height: 56px; margin: 14px 0 6px; color: var(--accent); }
+
+/* المشغّل المصغّر أُلغي: التحكم صار في أعلى الصفحة الرئيسية */
+.mini { display: none !important; }
+body main#scroll, #scroll { padding-bottom: calc(var(--safe-b) + var(--tabs-h) + 16px) !important; }
