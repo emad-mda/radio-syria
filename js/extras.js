@@ -383,8 +383,16 @@
     $('hh-sub').textContent = S.title && S.state === 'playing' ? '♪ ' + S.title : (s ? (s.genre || s.en || '') : '');
     $('hh-play').innerHTML = RS.svg(on ? 'pause' : 'play');
     $('hh-fav').classList.toggle('on', !!s && S.favs.some(function (f) { return f.id === s.id; }));
-    $('hh-sleep').classList.toggle('on', !!S.sleepEnd);
+    $('hf-sleep').classList.toggle('on', !!S.sleepEnd);
+    $('hf-sleep-t').textContent = S.sleepEnd ? Math.max(1, Math.ceil((S.sleepEnd - Date.now()) / 60000)) + ' د' : T('مؤقت النوم');
   }
+  var KWRE = { music: /موسيق|طرب|أغان|اغان|music|pop|hits/i, news: /أخبار|اخبار|إخبار|news|talk/i };
+  var kw = '';
+  RS.hooks.base = function (base) {
+    if (!kw) return base;
+    var re = KWRE[kw];
+    return S.all.filter(function (s) { return !RS.deadIds[s.id] && re.test([s.name, s.en, s.genre].join(' ')); });
+  };
   function homeAfter() {
     var home = S.tab === 'syria' && !S.query, arab = S.tab === 'arab' && !S.query;
     $('home-hero').classList.toggle('hidden', !home);
@@ -392,8 +400,9 @@
     document.body.classList.toggle('on-home', home);
     $('disc-h').classList.toggle('hidden', S.tab === 'favs' || !!S.query);
     var fv = S.favs.slice(0, 3);
-    $('home-favs').classList.toggle('hidden', !(home && fv.length));
-    if (home && fv.length) {
+    $('home-favs').classList.toggle('hidden', !home);
+    if (home && !fv.length) $('hf-list').innerHTML = '<p class="muted small" style="padding:4px 20px 8px">اضغط ♥ بجانب أي محطة لتظهر هنا</p>';
+    if (home) {
       $('hf-list').innerHTML = fv.map(function (s) {
         return '<div class="row" data-sid="' + esc(s.id) + '">' + RS.artHTML(s) + '<div class="meta"><div class="name">' + esc(s.name) + '</div><div class="sub">' + esc(s.gov || '') + '</div></div><span class="pc">' + RS.svg('play') + '</span></div>';
       }).join('');
@@ -403,9 +412,12 @@
       var k = t.getAttribute('data-tab');
       t.classList.toggle('active', k === S.tab || (k === 'syria' && arab));
     });
-    // شريحة «عربية» للانتقال إلى المحطات العربية
-    if ((home || arab) && !(RS.prefs && RS.prefs.showChips === false)) {
-      $('chips').insertAdjacentHTML('afterbegin', '<button class="chip' + (arab ? ' on' : '') + '" data-xarab="' + (arab ? 'syria' : 'arab') + '">' + (arab ? '↩ سورية' : T('عربية')) + '</button>');
+    // شرائح الفئات مثل التصميم: سورية / عربية / موسيقى / أخبار
+    if ((S.tab === 'syria' || S.tab === 'arab') && !S.query) {
+      var cur = kw || S.tab;
+      $('chips').innerHTML = [['syria', 'سورية'], ['arab', 'عربية'], ['music', 'موسيقى'], ['news', 'أخبار']].map(function (c) {
+        return '<button class="chip' + (cur === c[0] ? ' on' : '') + '" data-xcat="' + c[0] + '">' + esc(T(c[1])) + '</button>';
+      }).join('');
     }
   }
   function homeInit() {
@@ -419,18 +431,28 @@
     $('hh-prev').addEventListener('click', function () { RS.step(-1); });
     $('hh-next').addEventListener('click', function () { RS.step(1); });
     $('hh-fav').addEventListener('click', function () { $('np-fav').click(); });
-    $('hh-sleep').addEventListener('click', function () { $('np-sleep').click(); });
+    $('hf-sleep').addEventListener('click', function () { $('np-sleep').click(); });
+    $('hh-air').addEventListener('click', function () {
+      var a = $('np-airplay');
+      if (a && !a.classList.contains('hidden')) a.click(); else RS.toast('AirPlay: من مركز التحكم في الآيفون');
+    });
+    var br = document.querySelector('.brand');
+    if (br) br.insertAdjacentHTML('afterbegin', '<svg class="brand-radio" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10a1 1 0 0 1 1-1zm1 2v8h14v-8zm3 1.500a2.500 2.500 0 1 0 0 5 2.500 2.500 0 0 0 0-5zM13.500 12.500V14h4.500v-1.500zm0 3V17h4.500v-1.500zM5.600 7.600 16.800 3l.6 1.400L9.600 7.600z"/></svg>');
     $('tab-tv').addEventListener('click', function () { $('about-btn').click(); });
     $('tab-prefs').addEventListener('click', function () { $('prefs-btn').click(); });
     document.addEventListener('click', function (e) {
-      var c = e.target.closest('[data-xarab]'); if (!c) return;
-      S.tab = c.getAttribute('data-xarab'); S.filter = 'الكل'; RS.renderList(); $('scroll').scrollTop = 0;
+      var c = e.target.closest('[data-xcat]'); if (!c) return;
+      var v = c.getAttribute('data-xcat');
+      kw = (v === 'music' || v === 'news') ? v : '';
+      if (!kw) S.tab = v; else S.tab = 'syria';
+      S.filter = 'الكل'; RS.renderList();
     });
     $('scroll').addEventListener('scroll', function () {
       var y = this.scrollTop;
       $('hero-bg').style.opacity = Math.max(0, 1 - y / 260);
       document.body.classList.toggle('hero-top', y < 30);
     }, { passive: true });
+    document.addEventListener('click', function (e) { if (e.target.closest('[data-tab]')) kw = ''; }, true);
     document.body.classList.add('hero-top');
     RS.paintIcons();
   }

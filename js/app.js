@@ -139,6 +139,7 @@
   function renderList() {
     var favBase = S.tab === 'favs' && RS.hooks.favBase ? RS.hooks.favBase(S.favs) : S.favs;
     var base = S.tab === 'favs' ? favBase : catList(S.tab);
+    if (S.tab !== 'favs' && RS.hooks.base) base = RS.hooks.base(base);
     $('tab-title').textContent = (RS.hooks.title2 && RS.hooks.title2(S.tab)) || TAB_TITLES[S.tab];
 
     // الشرائح (محافظات / دول)
@@ -198,7 +199,7 @@
 
   // ---------- المشغّل ----------
   function setAccent(hex) {
-    if (prefs.accent !== 'auto') hex = prefs.accent;      // لون ثابت اختاره المستخدم بدل لون المحطة
+    hex = prefs.accent !== 'auto' ? prefs.accent : '#34d399';   // الافتراضي: الأخضر النعناعي كما في التصميم      // لون ثابت اختاره المستخدم بدل لون المحطة
     var n = parseInt(hex.slice(1), 16);
     var rgb = [(n >> 16) & 255, (n >> 8) & 255, n & 255].join(',');
     document.documentElement.style.setProperty('--accent', hex);
