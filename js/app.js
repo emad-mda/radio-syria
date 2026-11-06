@@ -246,6 +246,9 @@
     });
   }
 
+  var renderPlayerBase = renderPlayer;
+  renderPlayer = function () { renderPlayerBase(); if (RS.hooks.player) RS.hooks.player(); };
+
   // شاشة القفل ومركز التحكم
   function updateMediaSession() {
     if (!('mediaSession' in navigator) || !S.current) return;
@@ -1119,6 +1122,7 @@
   RS.PREFS_DEF = PREFS_DEF; RS.PROXY = PROXY; RS.paintIcons = paintIcons; RS.applyPrefs = applyPrefs;
   RS.renderPrefs = renderPrefs; RS.deadIds = deadIds; RS.snapshot = snapshot; RS.quality = quality;
   RS.STATUS = STATUS; RS.TAB_TITLES = TAB_TITLES; RS.PREF_UI = PREF_UI;
+  RS.artHTML = artHTML; RS.hydrateLogos = hydrateLogos;
   RS.ready = true;
   if (RS.onReady) RS.onReady();
 

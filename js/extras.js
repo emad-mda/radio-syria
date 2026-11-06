@@ -27,7 +27,7 @@
   function xs() { save('x', X); }
   var LANGS = {
     en: {
-      'سورية': 'Syria', 'عربية': 'Arabic', 'المفضلة': 'Favorites', 'الإعدادات': 'Settings',
+      'سورية': 'Syria', 'الرئيسية': 'Home', 'التلفاز': 'TV', 'اختر محطة': 'Pick a station', 'عربية': 'Arabic', 'المفضلة': 'Favorites', 'الإعدادات': 'Settings',
       'المحطات السورية': 'Syrian stations', 'محطات عربية': 'Arab stations',
       'مفضلة': 'Favorite', 'مؤقت النوم': 'Sleep timer', 'على التلفاز': 'On TV', 'تسجيل': 'Record',
       'مباشر': 'Live', 'الأكثر استماعاً': 'Most played', 'استمعت مؤخراً': 'Recently played',
@@ -40,7 +40,7 @@
       'مشاركة': 'Share', 'قائمة': 'List', 'سيارة': 'Car mode', 'ابحث عن محطة أو مدينة…': 'Search a station or city…'
     },
     de: {
-      'سورية': 'Syrien', 'عربية': 'Arabisch', 'المفضلة': 'Favoriten', 'الإعدادات': 'Einstellungen',
+      'سورية': 'Syrien', 'الرئيسية': 'Start', 'التلفاز': 'TV', 'اختر محطة': 'Sender wählen', 'عربية': 'Arabisch', 'المفضلة': 'Favoriten', 'الإعدادات': 'Einstellungen',
       'المحطات السورية': 'Syrische Sender', 'محطات عربية': 'Arabische Sender',
       'مفضلة': 'Favorit', 'مؤقت النوم': 'Einschlaftimer', 'على التلفاز': 'Am TV', 'تسجيل': 'Aufnahme',
       'مباشر': 'Live', 'الأكثر استماعاً': 'Meistgehört', 'استمعت مؤخراً': 'Zuletzt gehört',
@@ -374,8 +374,70 @@
     RS.play(s);
   }
 
+  // ---------- الصفحة الرئيسية بالتصميم الجديد ----------
+  function homePlayer() {
+    var s = S.current, on = S.state === 'playing' || S.state === 'buffering';
+    $('hh-name').textContent = s ? s.name : T('اختر محطة');
+    $('hh-live-t').textContent = s ? (S.state === 'playing' ? 'مباشر من ' + (s.gov || '') : (s.gov || '')) : '';
+    $('hh-live').classList.toggle('on', S.state === 'playing');
+    $('hh-sub').textContent = S.title && S.state === 'playing' ? '♪ ' + S.title : (s ? (s.genre || s.en || '') : '');
+    $('hh-play').innerHTML = RS.svg(on ? 'pause' : 'play');
+    $('hh-fav').classList.toggle('on', !!s && S.favs.some(function (f) { return f.id === s.id; }));
+    $('hh-sleep').classList.toggle('on', !!S.sleepEnd);
+  }
+  function homeAfter() {
+    var home = S.tab === 'syria' && !S.query, arab = S.tab === 'arab' && !S.query;
+    $('home-hero').classList.toggle('hidden', !home);
+    $('hero-bg').classList.toggle('hidden', !home);
+    document.body.classList.toggle('on-home', home);
+    $('disc-h').classList.toggle('hidden', S.tab === 'favs' || !!S.query);
+    var fv = S.favs.slice(0, 3);
+    $('home-favs').classList.toggle('hidden', !(home && fv.length));
+    if (home && fv.length) {
+      $('hf-list').innerHTML = fv.map(function (s) {
+        return '<div class="row" data-sid="' + esc(s.id) + '">' + RS.artHTML(s) + '<div class="meta"><div class="name">' + esc(s.name) + '</div><div class="sub">' + esc(s.gov || '') + '</div></div><span class="pc">' + RS.svg('play') + '</span></div>';
+      }).join('');
+      RS.hydrateLogos($('hf-list'));
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('.tab[data-tab]'), function (t) {
+      var k = t.getAttribute('data-tab');
+      t.classList.toggle('active', k === S.tab || (k === 'syria' && arab));
+    });
+    // شريحة «عربية» للانتقال إلى المحطات العربية
+    if ((home || arab) && !(RS.prefs && RS.prefs.showChips === false)) {
+      $('chips').insertAdjacentHTML('afterbegin', '<button class="chip' + (arab ? ' on' : '') + '" data-xarab="' + (arab ? 'syria' : 'arab') + '">' + (arab ? '↩ سورية' : T('عربية')) + '</button>');
+    }
+  }
+  function homeInit() {
+    var prevAfter = RS.hooks.after;
+    RS.hooks.after = function (l) { if (prevAfter) prevAfter(l); homeAfter(); };
+    RS.hooks.player = homePlayer;
+    $('hh-play').addEventListener('click', function () {
+      if (!S.current) { var f = S.all.filter(function (x) { return (x.cat || 'syria') === 'syria'; })[0]; if (f) RS.play(f); }
+      else RS.toggle();
+    });
+    $('hh-prev').addEventListener('click', function () { RS.step(-1); });
+    $('hh-next').addEventListener('click', function () { RS.step(1); });
+    $('hh-fav').addEventListener('click', function () { $('np-fav').click(); });
+    $('hh-sleep').addEventListener('click', function () { $('np-sleep').click(); });
+    $('tab-tv').addEventListener('click', function () { $('about-btn').click(); });
+    $('tab-prefs').addEventListener('click', function () { $('prefs-btn').click(); });
+    document.addEventListener('click', function (e) {
+      var c = e.target.closest('[data-xarab]'); if (!c) return;
+      S.tab = c.getAttribute('data-xarab'); S.filter = 'الكل'; RS.renderList(); $('scroll').scrollTop = 0;
+    });
+    $('scroll').addEventListener('scroll', function () {
+      var y = this.scrollTop;
+      $('hero-bg').style.opacity = Math.max(0, 1 - y / 260);
+      document.body.classList.toggle('hero-top', y < 30);
+    }, { passive: true });
+    document.body.classList.add('hero-top');
+    RS.paintIcons();
+  }
+
   function start() {
     build();
+    homeInit();
     RS.hooks.title = function (t, st) { histAdd(t, st); };
     setInterval(usageTick, 10000);
     setInterval(newsTick, 20000);

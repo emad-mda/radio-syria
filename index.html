@@ -29,6 +29,7 @@
   </div>
 
   <div class="glow" id="glow"></div>
+  <div class="hero-bg" id="hero-bg"></div>
 
   <header class="top">
     <div class="brand">
@@ -51,6 +52,25 @@
   </div>
 
   <main id="scroll">
+    <section class="home-hero" id="home-hero">
+      <div class="hh-live" id="hh-live"><i></i><span id="hh-live-t"></span></div>
+      <h2 id="hh-name">اختر محطة</h2>
+      <p class="hh-sub" id="hh-sub"></p>
+      <div class="eq wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="hh-ctl">
+        <button class="hh-b" id="hh-sleep" aria-label="مؤقت النوم"><span data-icon="timer"></span></button>
+        <button class="hh-b" id="hh-fav" aria-label="مفضلة"><span data-icon="heart"></span></button>
+        <button class="hh-b" id="hh-prev" aria-label="السابقة"><span class="mirror" data-icon="prev"></span></button>
+        <button class="hh-b big" id="hh-play" aria-label="تشغيل/إيقاف"><span data-icon="play"></span></button>
+        <button class="hh-b" id="hh-next" aria-label="التالية"><span class="mirror" data-icon="next"></span></button>
+      </div>
+    </section>
+
+    <section class="home-favs hidden" id="home-favs">
+      <h2 class="sec-h">محطاتك المفضلة</h2>
+      <div class="list" id="hf-list"></div>
+    </section>
+
     <label class="search">
       <span data-icon="search"></span>
       <input id="q" type="search" placeholder="ابحث عن محطة أو مدينة…" autocomplete="off" enterkeyhint="search">
@@ -66,6 +86,7 @@
       <div class="strip" id="recent"></div>
     </section>
 
+    <h2 class="sec-h" id="disc-h">اكتشف محطات جديدة</h2>
     <div class="chips" id="chips"></div>
     <div class="list" id="list"></div>
     <div class="empty hidden" id="empty"></div>
@@ -83,9 +104,10 @@
   </div>
 
   <nav class="tabs">
-    <button class="tab active" data-tab="syria"><span data-icon="radio"></span><b>سورية</b></button>
-    <button class="tab" data-tab="arab"><span data-icon="globe"></span><b>عربية</b></button>
+    <button class="tab active" data-tab="syria"><span data-icon="radio"></span><b>الرئيسية</b></button>
     <button class="tab" data-tab="favs"><span data-icon="heart"></span><b>المفضلة</b></button>
+    <button class="tab" id="tab-tv"><span data-icon="tv"></span><b>التلفاز</b></button>
+    <button class="tab" id="tab-prefs"><span data-icon="gear"></span><b>الإعدادات</b></button>
   </nav>
 
   <!-- شاشة التشغيل الكاملة -->
