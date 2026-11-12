@@ -122,7 +122,7 @@
       body.appendChild(el('<h3>' + T('ثيم المناسبات') + '</h3>'));
       body.appendChild(el('<div class="pref"><span>رمضان والأعياد (ألوان وتهنئة)</span><button type="button" class="switch" id="x-season-on" role="switch"><i></i></button></div>'));
       body.appendChild(el('<div class="pref"><span>معاينة الثيم</span><div class="seg" id="x-prev"><button type="button" data-p="">إيقاف</button><button type="button" data-p="ramadan">رمضان</button><button type="button" data-p="eid">عيد</button></div></div>'));
-      x-prev.addEventListener('click', function (e) { var b = e.target.closest('[data-p]'); if (!b) return; M.preview = b.getAttribute('data-p'); ms(); applySeason(); paintSeasonSwitch(); });
+      $('x-prev').addEventListener('click', function (e) { var b = e.target.closest('[data-p]'); if (!b) return; M.preview = b.getAttribute('data-p'); ms(); applySeason(); paintSeasonSwitch(); });
       body.appendChild(el('<button class="wide-btn ghost" id="x-stat-open">' + T('إحصائيات الاستماع') + '</button>'));
       $('x-season-on').addEventListener('click', function () { M.season = !M.season; ms(); paintSeasonSwitch(); applySeason(); });
       $('x-stat-open').addEventListener('click', function () { RS.closeSheet('tools-sheet'); renderStats(); RS.openSheet('stat-sheet'); });
