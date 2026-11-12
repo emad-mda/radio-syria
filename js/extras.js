@@ -378,7 +378,7 @@
   function homePlayer() {
     var s = S.current, on = S.state === 'playing' || S.state === 'buffering';
     $('hh-name').textContent = s ? s.name : T('اختر محطة');
-    $('hh-live-t').textContent = s ? (S.state === 'playing' ? 'مباشر من ' + (s.gov || '') : (s.gov || '')) : '';
+    $('hh-live-t').textContent = s ? ('مباشر من ' + (s.gov || 'سوريا')) : '';
     $('hh-live').classList.toggle('on', S.state === 'playing');
     $('hh-sub').textContent = S.title && S.state === 'playing' ? '♪ ' + S.title : (s ? (s.genre || s.en || '') : '');
     $('hh-play').innerHTML = RS.svg(on ? 'pause' : 'play');

@@ -9,9 +9,9 @@
   function Wave(cv) {
     var W = cv.width, H = cv.height, ctx = cv.getContext('2d');
     var N = Math.max(40, Math.floor(W / 9)), half = Math.ceil(N / 2) + 1, mid = (N - 1) / 2;
-    var hist = [], h = [], i;
+    var hist = [], h = [], stat = [], i;
     for (i = 0; i < half; i++) hist.push(0);
-    for (i = 0; i < N; i++) h.push(0);
+    for (i = 0; i < N; i++) { h.push(0); stat.push(0.25 + 0.75 * Math.pow(Math.random(), 0.8)); }
     var energy = 0.6, energyT = 0.7, nextE = 0, phrase = 1, beat = 0, nextBeat = 0, acc = 0, last = Date.now();
     var color = '#34d399', cc = 0, t0 = last;
 
@@ -42,7 +42,7 @@
         var win = 0.14 + 0.86 * Math.exp(-Math.pow(x * 1.35, 2));          // نافذة: الوسط أعلى والأطراف نقاط
         var k = Math.floor(d), f = d - k;
         var s = hist[k] * (1 - f) + (hist[k + 1] || 0) * f;
-        var target = s * win;
+        var target = state === 'idle' ? stat[i] * win * 0.55 : s * win;
         h[i] += (target - h[i]) * (target > h[i] ? 0.6 : 0.28);
         var bh = Math.max(bw, h[i] * H * 0.96), x0 = i * gap + (gap - bw) / 2, y0 = cy - bh / 2;
         ctx.globalAlpha = 0.45 + 0.55 * Math.min(1, h[i] * 1.6);

@@ -313,7 +313,7 @@
 
   function play(station, urlIdx, auto) {
     if (!station) return;
-    if (!auto) { wantPlay = true; playedOk = false; retryN = 0; clearTimeout(retryTimer); if (window.hubEvent) window.hubEvent('play', station.name); }
+    if (!auto) { wantPlay = true; playedOk = false; retryN = 0; clearTimeout(retryTimer); }
     holding = false; audio.loop = false;
     S.current = station;
     S.urlIdx = urlIdx || 0;
