@@ -438,7 +438,7 @@
     });
     var br = document.querySelector('.brand');
     if (br) br.insertAdjacentHTML('afterbegin', '<svg class="brand-radio" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10a1 1 0 0 1 1-1zm1 2v8h14v-8zm3 1.500a2.500 2.500 0 1 0 0 5 2.500 2.500 0 0 0 0-5zM13.500 12.500V14h4.500v-1.500zm0 3V17h4.500v-1.500zM5.600 7.600 16.800 3l.6 1.400L9.600 7.600z"/></svg>');
-    $('tab-tv').addEventListener('click', function () { $('about-btn').click(); });
+    $('tab-tv').addEventListener('click', function () { RS.openSheet('tv-sheet'); });
     $('tab-prefs').addEventListener('click', function () { $('prefs-btn').click(); });
     document.addEventListener('click', function (e) {
       var c = e.target.closest('[data-xcat]'); if (!c) return;

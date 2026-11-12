@@ -579,7 +579,7 @@
   function sendCast(cmd) {
     var code = load('castCode', '');
     if (!PROXY) { toast('الوسيط غير مفعّل'); return; }
-    if (!/^\d{10}$/.test(code)) { openSheet('about'); toast('اكتب رمز الربط من التلفاز أولاً'); return; }
+    if (!/^\d{10}$/.test(code)) { openSheet('tv-sheet'); toast('اربط التلفاز أولاً'); return; }
     if (cmd === 'play' && !S.current) return;
     fetch(PROXY + '/cast/' + code, {
       method: 'POST', headers: { 'content-type': 'application/json' },
@@ -806,7 +806,7 @@
   }
   function scanStart() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { toast('الكاميرا غير متاحة هنا. استخدم كاميرا الأيفون العادية أو اكتب الرمز'); return; }
-    closeSheet('about'); openSheet('scan');
+    closeSheet('about'); closeSheet('tv-sheet'); openSheet('scan');
     $('scan-note').textContent = 'جاري تشغيل الكاميرا…';
     Promise.all([loadJsQR(), navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false })]).then(function (r) {
       scanStream = r[1];
@@ -846,7 +846,7 @@
     }, function () { /* نبقي القيمة السابقة */ });
   }
   $('remote-open').addEventListener('click', function () {
-    closeSheet('about'); openSheet('remote');
+    closeSheet('about'); closeSheet('tv-sheet'); openSheet('remote');
     remoteTick(); clearInterval(remoteTimer); remoteTimer = setInterval(remoteTick, 3000);
   });
   Array.prototype.forEach.call(document.querySelectorAll('[data-rc]'), function (b) {

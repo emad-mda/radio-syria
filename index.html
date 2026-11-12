@@ -148,8 +148,23 @@
       <button class="grab" data-close="prefs-sheet" aria-label="إغلاق"><span data-icon="chevron"></span></button>
       <h2>الإعدادات</h2>
       <div id="prefs" class="prefs"></div>
-      <button class="wide-btn ghost" id="prefs-more">التلفاز والتذكيرات والمزيد</button>
+      <button class="wide-btn ghost" id="prefs-more">التذكيرات والأغاني والمزيد</button>
       <button class="wide-btn ghost" id="prefs-reset">استعادة الإعدادات الافتراضية</button>
+    </div>
+  </div>
+
+  <!-- التلفاز: الربط والريموت -->
+  <div class="sheet" id="tv-sheet" aria-hidden="true">
+    <div class="sheet-bg" data-close="tv-sheet"></div>
+    <div class="sheet-body about-body">
+      <button class="grab" data-close="tv-sheet" aria-label="إغلاق"><span data-icon="chevron"></span></button>
+      <h2>التلفاز</h2>
+      <p class="muted small">اربط الأيفون بتطبيق الشاشة مرة واحدة، ثم تحكّم بالتلفاز وأرسل له المحطات.</p>
+      <button class="wide-btn" id="scan-btn">مسح رمز QR من التلفاز</button>
+      <input id="cast-code" class="field" inputmode="numeric" maxlength="10" placeholder="أو اكتب رمز الربط (10 أرقام)" autocomplete="off">
+      <button class="wide-btn ghost" id="remote-open">ريموت التلفاز</button>
+      <button class="wide-btn ghost" id="cast-stop">إيقاف البث على التلفاز</button>
+      <p class="muted small">الرمز يظهر على التلفاز من: الإعدادات ← ربط الأيفون، أو من زر «ربط الأيفون» أسفل الشاشة.</p>
     </div>
   </div>
 
@@ -158,20 +173,12 @@
     <div class="sheet-bg" data-close="about"></div>
     <div class="sheet-body about-body">
       <button class="grab" data-close="about" aria-label="إغلاق"><span data-icon="chevron"></span></button>
-      <h2>راديو سوريا</h2>
+      <h2>المزيد</h2>
       <p>إذاعات سورية وعربية مباشرة. المحطات الإضافية من دليل Radio Browser المفتوح وتُحدَّث تلقائياً.</p>
       <p id="hidden-note" class="muted"></p>
 
       <h3>أغاني محفوظة</h3>
       <div id="songs" class="songs"></div>
-
-      <h3>التلفاز</h3>
-      <p class="muted small">اكتب الرمز الظاهر على التلفاز (الإعدادات ← رمز الربط)، ثم اضغط «على التلفاز» في شاشة التشغيل.</p>
-      <button class="wide-btn" id="scan-btn">مسح رمز QR من التلفاز</button>
-      <input id="cast-code" class="field" inputmode="numeric" maxlength="10" placeholder="رمز الربط (10 أرقام)" autocomplete="off">
-      <button class="wide-btn ghost" id="cast-stop">إيقاف البث على التلفاز</button>
-
-      <button class="wide-btn ghost" id="remote-open">ريموت التلفاز</button>
 
       <h3>محطة كل فترة من اليوم</h3>
       <p class="muted small">تظهر جاهزة للتشغيل عند فتح التطبيق، وتُشغَّل تلقائياً على التلفاز (يلزم رمز الربط).</p>
@@ -196,7 +203,7 @@
       <p class="muted small" id="stat-note"></p>
       <button class="wide-btn" id="refresh-btn">تحديث دليل المحطات</button>
       <button class="wide-btn ghost" id="clear-btn">مسح «استمعت مؤخراً»</button>
-      <p class="muted small">النسخة 2.1 · نسخة الأيفون من تطبيق شاشة LG</p>
+      <p class="muted small">النسخة 2.2 · نسخة الأيفون من تطبيق شاشة LG</p>
     </div>
   </div>
 
