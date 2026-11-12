@@ -55,6 +55,7 @@
   window.CURATED_STATIONS.forEach(function (s) {
     var o = {}; for (var k in s) if (k !== 'match') o[k] = s[k];
     o.urls = usable(s.urls);
+    if (window.STATION_LOGOS && window.STATION_LOGOS[s.id]) o.logo = window.STATION_LOGO_DIR + window.STATION_LOGOS[s.id];
     if (!o.urls.length && PROXY && PROXY_IDS.indexOf(s.id) >= 0) o.urls = [PROXY + '/stream/' + s.id];
     if (o.urls.length) curated.push(o); else hiddenCount++;
   });
@@ -260,7 +261,7 @@
         artist: S.title ? s.name : ([s.gov, s.genre].filter(Boolean).join(' · ') || 'راديو سوريا'),
         album: 'راديو سوريا',
         artwork: [
-          { src: s.logo || 'icons/icon-512.png', sizes: '512x512' },
+          { src: new URL(s.logo || 'icons/icon-512.png', location.href).href, sizes: '512x512' },
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' }
         ]
       });

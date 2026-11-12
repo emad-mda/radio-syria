@@ -472,3 +472,16 @@ body.on-home:not(.show-search) .search { display: none; }
 .act { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 18px; }
 #alarm-ring, #pair-ok { background: rgba(5, 8, 12, 0.97); }
 .tab { color: #94a3b8; }
+/* ===== إضافات ثانية: تقييم، إحصائيات، موسمي، شارة جديد ===== */
+.x-rate{display:flex;align-items:center;justify-content:center;gap:10px;margin:6px 0 10px;color:var(--muted,#a8a29e);font-size:13px}
+.x-rate .star{background:none;border:0;font-size:26px;line-height:1;color:rgba(255,255,255,.25);padding:2px 3px}
+.x-rate .star.on{color:#e8c36a}
+.rt{font-size:11px;color:#e8c36a;font-weight:700}
+.newb{font-size:10px;font-weight:800;color:#0b1a14;background:#34d399;border-radius:6px;padding:1px 6px;margin-inline-start:4px}
+.x-hist{display:flex;align-items:flex-end;gap:3px;height:90px;margin:8px 0 2px}
+.x-hist i{flex:1;background:linear-gradient(#e8c36a,#a8842f);border-radius:3px 3px 0 0;min-height:3px}
+.x-hist-l{display:flex;justify-content:space-between;font-size:11px;color:#a8a29e;margin-bottom:10px}
+.x-season{text-align:center;font-weight:800;font-size:15px;color:#f3d98b;padding:6px 0;letter-spacing:.3px}
+body.season-ramadan #hero-bg{filter:hue-rotate(-8deg) saturate(1.15) brightness(.95)}
+body.season-ramadan .x-season{text-shadow:0 0 14px rgba(232,195,106,.6)}
+body.season-eid .x-season{color:#34d399;text-shadow:0 0 14px rgba(52,211,153,.5)}

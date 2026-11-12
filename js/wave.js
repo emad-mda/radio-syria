@@ -7,6 +7,7 @@
   var host = document.getElementById('app') || document.body;
 
   function Wave(cv) {
+    this.cv = cv;
     var W = cv.width, H = cv.height, ctx = cv.getContext('2d');
     var N = Math.max(40, Math.floor(W / 9)), half = Math.ceil(N / 2) + 1, mid = (N - 1) / 2;
     var hist = [], h = [], stat = [], i;
@@ -61,7 +62,7 @@
     if (document.hidden || ts - lastTs < 33) return;     // ≈30 إطاراً/ث
     lastTs = ts;
     var state = host.classList.contains('is-playing') ? 'playing' : host.classList.contains('is-buffering') ? 'buffering' : 'idle';
-    waves.forEach(function (w) { w.draw(state); });
+    waves.forEach(function (w) { if (w.cv.offsetParent) w.draw(state); });
   }
   requestAnimationFrame(frame);
 })();
