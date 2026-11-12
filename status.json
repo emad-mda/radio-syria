@@ -1,204 +1,204 @@
 {
- "checkedAt": "2026-11-11T10:05:20.128Z",
+ "checkedAt": "2026-11-12T10:29:44.800Z",
  "deadAfter": 2,
  "stations": {
-  "syriatv": {
-   "name": "راديو تلفزيون سوريا",
-   "state": "ok",
-   "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
-  },
   "skynews": {
    "name": "سكاي نيوز عربية",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
+  },
+  "syriatv": {
+   "name": "راديو تلفزيون سوريا",
+   "state": "ok",
+   "streak": 0,
+   "lastOk": "2026-11-12T10:29:44.800Z"
   },
   "mixfmlb": {
    "name": "ميكس إف إم",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
   },
   "damascus": {
    "name": "إذاعة دمشق",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
   },
   "shamfm": {
    "name": "شام إف إم",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
   },
   "ninar": {
    "name": "نينار إف إم",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
   },
   "asima": {
    "name": "العاصمة أونلاين",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
   },
   "rozana": {
    "name": "راديو روزنة",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
-  },
-  "karma": {
-   "name": "الكرمة إف إم",
-   "state": "ok",
-   "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
   },
   "orman": {
    "name": "أورمان جبل العرب",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
   },
   "sadaljabal": {
    "name": "صدى الجبل",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
   },
-  "denge": {
-   "name": "دنگێ قامشلو",
+  "karma": {
+   "name": "الكرمة إف إم",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
   },
   "arta": {
    "name": "آرتا إف إم",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
+  },
+  "denge": {
+   "name": "دنگێ قامشلو",
+   "state": "ok",
+   "streak": 0,
+   "lastOk": "2026-11-12T10:29:44.800Z"
   },
   "arabesk": {
    "name": "راديو أرابيسك",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
   },
   "rayan": {
    "name": "ريان إف إم",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
   },
   "helmna": {
    "name": "راديو حلمنا",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
-  },
-  "nasaem": {
-   "name": "نسائم سوريا",
-   "state": "ok",
-   "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
   },
   "qadeem": {
    "name": "قديم إف إم",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
-  },
-  "yeraz": {
-   "name": "راديو يراز",
-   "state": "ok",
-   "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
   },
   "shabab": {
    "name": "صوت الشباب",
    "state": "dead",
-   "streak": 13,
+   "streak": 14,
    "lastOk": null
-  },
-  "rotanajo": {
-   "name": "روتانا الأردن",
-   "state": "ok",
-   "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
   },
   "rotana": {
    "name": "روتانا إف إم",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
+  },
+  "rotanajo": {
+   "name": "روتانا الأردن",
+   "state": "ok",
+   "streak": 0,
+   "lastOk": "2026-11-12T10:29:44.800Z"
+  },
+  "yeraz": {
+   "name": "راديو يراز",
+   "state": "ok",
+   "streak": 0,
+   "lastOk": "2026-11-12T10:29:44.800Z"
   },
   "mazaj": {
    "name": "مزاج إف إم",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
   },
   "fann": {
    "name": "فن إف إم",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
   },
   "sawtelghad": {
    "name": "صوت الغد",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
   },
   "sawtelghadtarab": {
    "name": "صوت الغد طرب",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
   },
   "mcd": {
    "name": "مونت كارلو الدولية",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
   },
   "bbcarabic": {
    "name": "بي بي سي عربي",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
-  },
-  "tayf": {
-   "name": "طيف إف إم",
-   "state": "ok",
-   "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
-  },
-  "nagham": {
-   "name": "صوت النغم",
-   "state": "ok",
-   "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
-  },
-  "emaar": {
-   "name": "إعمار إف إم",
-   "state": "ok",
-   "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
-  },
-  "fairuz": {
-   "name": "فيروزيات",
-   "state": "ok",
-   "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
   },
   "virginlb": {
    "name": "فيرجن راديو لبنان",
    "state": "ok",
    "streak": 0,
-   "lastOk": "2026-11-11T10:05:20.128Z"
+   "lastOk": "2026-11-12T10:29:44.800Z"
+  },
+  "emaar": {
+   "name": "إعمار إف إم",
+   "state": "ok",
+   "streak": 0,
+   "lastOk": "2026-11-12T10:29:44.800Z"
+  },
+  "fairuz": {
+   "name": "فيروزيات",
+   "state": "ok",
+   "streak": 0,
+   "lastOk": "2026-11-12T10:29:44.800Z"
+  },
+  "nagham": {
+   "name": "صوت النغم",
+   "state": "ok",
+   "streak": 0,
+   "lastOk": "2026-11-12T10:29:44.800Z"
+  },
+  "tayf": {
+   "name": "طيف إف إم",
+   "state": "ok",
+   "streak": 0,
+   "lastOk": "2026-11-12T10:29:44.800Z"
+  },
+  "nasaem": {
+   "name": "نسائم سوريا",
+   "state": "ok",
+   "streak": 0,
+   "lastOk": "2026-11-12T10:29:44.800Z"
   }
  }
 }
