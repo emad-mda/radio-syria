@@ -30,6 +30,8 @@
 
   // ---------- ثيم موسمي (رمضان / العيد) ----------
   function season() {
+    if (M.preview === 'ramadan') return { k: 'ramadan', t: 'رمضان كريم 🌙' };
+    if (M.preview === 'eid') return { k: 'eid', t: 'عيد مبارك 🎉' };
     try {
       var f = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { month: 'numeric', day: 'numeric' }).formatToParts(new Date()), m = 0, d = 0;
       f.forEach(function (p) { if (p.type === 'month') m = +p.value; if (p.type === 'day') d = +p.value; });
@@ -42,7 +44,7 @@
   function applySeason() {
     var old = $('x-season'); if (old) old.remove();
     document.body.classList.remove('season-ramadan', 'season-eid');
-    var s = M.season ? season() : null; if (!s) return;
+    var s = (M.season || M.preview) ? season() : null; if (!s) return;
     document.body.classList.add('season-' + s.k);
     var hero = $('home-hero');
     if (hero) hero.insertBefore(el('<div id="x-season" class="x-season">' + s.t + '</div>'), hero.firstChild);
@@ -119,6 +121,8 @@
       var body = tb.querySelector('.sheet-body');
       body.appendChild(el('<h3>' + T('ثيم المناسبات') + '</h3>'));
       body.appendChild(el('<div class="pref"><span>رمضان والأعياد (ألوان وتهنئة)</span><button type="button" class="switch" id="x-season-on" role="switch"><i></i></button></div>'));
+      body.appendChild(el('<div class="pref"><span>معاينة الثيم</span><div class="seg" id="x-prev"><button type="button" data-p="">إيقاف</button><button type="button" data-p="ramadan">رمضان</button><button type="button" data-p="eid">عيد</button></div></div>'));
+      x-prev.addEventListener('click', function (e) { var b = e.target.closest('[data-p]'); if (!b) return; M.preview = b.getAttribute('data-p'); ms(); applySeason(); paintSeasonSwitch(); });
       body.appendChild(el('<button class="wide-btn ghost" id="x-stat-open">' + T('إحصائيات الاستماع') + '</button>'));
       $('x-season-on').addEventListener('click', function () { M.season = !M.season; ms(); paintSeasonSwitch(); applySeason(); });
       $('x-stat-open').addEventListener('click', function () { RS.closeSheet('tools-sheet'); renderStats(); RS.openSheet('stat-sheet'); });
@@ -128,7 +132,7 @@
       '<button class="grab" data-close="stat-sheet" aria-label="إغلاق">' + RS.svg('chevron') + '</button><h2>' + T('إحصائيات الاستماع') + '</h2><div id="x-stat-body"></div></div></div>';
     document.body.appendChild(el(sh));
   }
-  function paintSeasonSwitch() { var b = $('x-season-on'); if (b) { b.classList.toggle('on', !!M.season); b.setAttribute('aria-checked', !!M.season); } }
+  function paintSeasonSwitch() { Array.prototype.forEach.call(document.querySelectorAll('#x-prev button'), function (b) { b.classList.toggle('on', (M.preview || '') === b.getAttribute('data-p')); }); var b = $('x-season-on'); if (b) { b.classList.toggle('on', !!M.season); b.setAttribute('aria-checked', !!M.season); } }
 
   function start() {
     S = RS.S;

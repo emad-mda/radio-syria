@@ -485,3 +485,5 @@ body.on-home:not(.show-search) .search { display: none; }
 body.season-ramadan #hero-bg{filter:hue-rotate(-8deg) saturate(1.15) brightness(.95)}
 body.season-ramadan .x-season{text-shadow:0 0 14px rgba(232,195,106,.6)}
 body.season-eid .x-season{color:#34d399;text-shadow:0 0 14px rgba(52,211,153,.5)}
+body.season-ramadan .x-season,body.season-eid .x-season{margin:8px 20px 0;border:1px solid rgba(232,195,106,.35);border-radius:14px;background:rgba(232,195,106,.1)}
+body.season-ramadan{--accent:#e8c36a}
