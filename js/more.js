@@ -149,6 +149,25 @@
       var base = pf ? pf(favs) : favs;
       return Object.keys(M.rate).length ? base.slice().sort(function (a, b) { return (M.rate[b.id] || 0) - (M.rate[a.id] || 0); }) : base;
     };
+    // زر «كمّل على التلفاز» مكان AirPlay في الهيرو (AirPlay يبقى في شاشة التشغيل)
+    var air = $('hh-air');
+    if (air) {
+      var tvb = air.cloneNode(false); tvb.id = 'hh-tv'; tvb.setAttribute('aria-label', 'كمّل على التلفاز'); tvb.innerHTML = RS.svg('tv');
+      air.parentNode.replaceChild(tvb, air);
+      tvb.addEventListener('click', function () { if (!S.current) { RS.toast('اختر محطة أولاً'); return; } $('np-cast').click(); });
+    }
+    // ترتيب حسب وقت اليوم: صباحاً أخبار، مساءً موسيقى (فقط بالصفحة الرئيسية بدون فلتر)
+    var pb = RS.hooks.base;
+    RS.hooks.base = function (base) {
+      var out = pb ? pb(base) : base, hh = new Date().getHours();
+      var pref = hh >= 5 && hh < 12 ? 'news' : (hh >= 17 || hh < 2) ? 'music' : '';
+      var re = { news: /أخبار|اخبار|إخبار|news|talk/i, music: /موسيق|طرب|أغان|اغان|music|pop|hits/i }[pref];
+      if (!re || S.tab !== 'syria' || S.query || out !== base) return out;
+      var hit = out.filter(function (s) { return re.test([s.name, s.en, s.genre].join(' ')); });
+      return hit.concat(out.filter(function (s) { return hit.indexOf(s) < 0; }));
+    };
+    var dh = document.querySelector('#disc-h h2');
+    if (dh) { var h0 = new Date().getHours(); dh.textContent = h0 >= 5 && h0 < 12 ? 'صباح الخير · محطات لبداية يومك' : (h0 >= 17 || h0 < 2) ? 'مساء الخير · موسيقى لسهرتك' : 'اكتشف محطات جديدة'; }
     setInterval(tick, 10000);
     setInterval(applySeason, 6 * 3600 * 1000);
     xlate();
