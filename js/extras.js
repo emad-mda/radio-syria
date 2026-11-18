@@ -208,10 +208,10 @@
   // ---------- استهلاك البيانات (تقدير من نسبة البث × زمن التشغيل) ----------
   var usage = load('usage', {});
   function dayKey(d) { d = d || new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
-  function usageTick() {
+  function usageTick(sec) {
     if (S.state !== 'playing' || !S.current) return;
     var kbps = (S.current.bitrate | 0) || 64, k = dayKey();
-    usage[k] = (usage[k] || 0) + kbps * 1000 / 8 * 10;
+    usage[k] = (usage[k] || 0) + kbps * 1000 / 8 * (sec || 15);
     var keys = Object.keys(usage); if (keys.length > 45) { keys.slice(0, keys.length - 45).forEach(function (x) { delete usage[x]; }); }
     save('usage', usage);
   }
@@ -461,7 +461,8 @@
     build();
     homeInit();
     RS.hooks.title = function (t, st) { histAdd(t, st); };
-    setInterval(usageTick, 10000);
+    var prevTick = RS.hooks.tick;
+    RS.hooks.tick = function (sec) { if (prevTick) prevTick(sec); usageTick(sec); };
     setInterval(newsTick, 20000);
     applyLang();
     translateDom();

@@ -1,6 +1,6 @@
 // عامل الخدمة: يحفظ ملفات التطبيق ليفتح بسرعة وحتى دون اتصال.
 // لا يتدخل أبداً في روابط البث أو دليل المحطات.
-var CACHE = 'radio-syria-v28';
+var CACHE = 'radio-syria-v29';
 var SHELL = [
   './', 'index.html', 'css/app.css', 'js/stations.js', 'js/proxy.js', 'js/logos.js', 'js/app.js', 'js/extras.js', 'js/more.js', 'js/wave.js', 'manifest.webmanifest',
   'icons/hero.jpg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'
@@ -39,7 +39,7 @@ self.addEventListener('push', function (e) {
   e.waitUntil(Promise.race([lastReminder().catch(function () { return {}; }), timeout]).then(function (info) {
     return self.registration.showNotification(info.label || 'راديو سوريا ⏰', {
       body: 'اضغط لتشغيل محطتك',
-      icon: 'icons/hero.jpg', 'icons/icon-192.png',
+      icon: 'icons/icon-192.png',
       tag: 'alarm',
       renotify: true,
       data: { station: info.station || '', label: info.label || '' }

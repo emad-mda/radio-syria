@@ -82,12 +82,13 @@
   }
 
   // ---------- الإحصائيات ----------
-  function tick() {
+  function tick(sec) {
     if (S.state !== 'playing' || !S.current) return;
-    M.stat[S.current.id] = (M.stat[S.current.id] || 0) + 10;
-    M.hours[new Date().getHours()] += 10;
+    var dt = sec || 15;
+    M.stat[S.current.id] = (M.stat[S.current.id] || 0) + dt;
+    M.hours[new Date().getHours()] += dt;
     var dk = new Date().toISOString().slice(0, 10); M.days = M.days || {};
-    M.days[dk] = (M.days[dk] || 0) + 10;
+    M.days[dk] = (M.days[dk] || 0) + dt;
     var ks = Object.keys(M.days).sort(); if (ks.length > 60) ks.slice(0, ks.length - 60).forEach(function (k) { delete M.days[k]; });
     ms();
   }
@@ -168,7 +169,8 @@
     };
     var dh = document.querySelector('#disc-h h2');
     if (dh) { var h0 = new Date().getHours(); dh.textContent = h0 >= 5 && h0 < 12 ? 'صباح الخير · محطات لبداية يومك' : (h0 >= 17 || h0 < 2) ? 'مساء الخير · موسيقى لسهرتك' : 'اكتشف محطات جديدة'; }
-    setInterval(tick, 10000);
+    var ptk = RS.hooks.tick;
+    RS.hooks.tick = function (sec) { if (ptk) ptk(sec); tick(sec); };
     setInterval(applySeason, 6 * 3600 * 1000);
     xlate();
     RS.renderList(); RS.renderPlayer(); paintRate();

@@ -856,11 +856,14 @@
 
   // ---------- الاستماع: الأكثر استماعاً ----------
   var stats = load('stats', { s: {} });
+  // نبضة موحّدة كل 15 ثانية (يشاركها extras.js و more.js عبر RS.hooks.tick بدل 3 مؤقتات منفصلة)
+  var TICK_SEC = 15;
   setInterval(function () {
     if (S.state !== 'playing' || !S.current) return;
-    stats.s[S.current.id] = (stats.s[S.current.id] || 0) + 30;
+    stats.s[S.current.id] = (stats.s[S.current.id] || 0) + TICK_SEC;
     save('stats', stats);
-  }, 30000);
+    if (RS.hooks.tick) RS.hooks.tick(TICK_SEC);
+  }, TICK_SEC * 1000);
   function topStations() {
     return Object.keys(stats.s).filter(function (id) { return stats.s[id] >= 300 && S.byId[id] && !deadIds[id]; })
       .sort(function (a, b) { return stats.s[b] - stats.s[a]; }).slice(0, 5).map(function (id) { return S.byId[id]; });
