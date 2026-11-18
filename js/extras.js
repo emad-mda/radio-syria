@@ -451,6 +451,7 @@
       var y = this.scrollTop;
       $('hero-bg').style.opacity = Math.max(0, 1 - y / 260);
       document.body.classList.toggle('hero-top', y < 30);
+      document.body.classList.toggle('hero-past', y > 240);
     }, { passive: true });
     document.addEventListener('click', function (e) { if (e.target.closest('[data-tab]')) kw = ''; }, true);
     document.body.classList.add('hero-top');

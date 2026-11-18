@@ -38,7 +38,7 @@
   function load(k, f) { try { var v = localStorage.getItem('rsm.' + k); return v === null ? f : JSON.parse(v); } catch (e) { return f; } }
   function save(k, v) { try { localStorage.setItem('rsm.' + k, JSON.stringify(v)); } catch (e) { /* ignore */ } }
   // تفضيلات المظهر والأقسام (صفحة الإعدادات)
-  var PREFS_DEF = { theme: 'dark', accent: 'auto', font: 'm', density: 'comfy', glow: true, calm: false, showRecent: true, showTop: true, showChips: true, showSearch: true };
+  var PREFS_DEF = { theme: 'dark', accent: '#34d399', font: 'm', density: 'comfy', glow: true, calm: false, showRecent: true, showTop: true, showChips: true, showSearch: true };
   var prefs = (function () { var o = {}, s = load('prefs', {}); for (var k in PREFS_DEF) o[k] = s && s[k] !== undefined ? s[k] : PREFS_DEF[k]; return o; })();
   function esc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
@@ -200,7 +200,7 @@
 
   // ---------- المشغّل ----------
   function setAccent(hex) {
-    hex = prefs.accent !== 'auto' ? prefs.accent : '#34d399';   // الافتراضي: الأخضر النعناعي كما في التصميم      // لون ثابت اختاره المستخدم بدل لون المحطة
+    hex = prefs.accent !== 'auto' ? prefs.accent : (hex || '#34d399');   // لون ثابت اختاره المستخدم، أو لون المحطة الفعلي عند اختيار 'auto'
     var n = parseInt(hex.slice(1), 16);
     var rgb = [(n >> 16) & 255, (n >> 8) & 255, n & 255].join(',');
     document.documentElement.style.setProperty('--accent', hex);
@@ -1008,7 +1008,7 @@
   }
 
   // ---------- صفحة الإعدادات: المظهر وإظهار/إخفاء الأقسام ----------
-  var ACCENTS = [['auto', 'حسب المحطة'], ['#10b981', 'أخضر'], ['#3b82f6', 'أزرق'], ['#f59e0b', 'ذهبي'], ['#a855f7', 'بنفسجي'], ['#ec4899', 'وردي'], ['#ef4444', 'أحمر']];
+  var ACCENTS = [['auto', 'حسب المحطة'], ['#34d399', 'نعناعي'], ['#10b981', 'أخضر'], ['#3b82f6', 'أزرق'], ['#f59e0b', 'ذهبي'], ['#a855f7', 'بنفسجي'], ['#ec4899', 'وردي'], ['#ef4444', 'أحمر']];
   var PREF_UI = [
     { title: 'المظهر', items: [
       { k: 'theme', label: 'السمة', seg: [['dark', 'داكن'], ['black', 'أسود تماماً']] },
@@ -1038,7 +1038,7 @@
     if (!prefs.showSearch && S.query) { S.query = ''; $('q').value = ''; }
     // اللون: ثابت أو حسب المحطة الحالية
     artFor = null;
-    if (prefs.accent !== 'auto' || !S.current) setAccent(prefs.accent !== 'auto' ? prefs.accent : '#10b981');
+    if (prefs.accent !== 'auto' || !S.current) setAccent(prefs.accent !== 'auto' ? prefs.accent : '#34d399');
     renderList();
     renderPlayer();
   }
@@ -1079,9 +1079,9 @@
     try { if (sessionStorage.getItem('rsm.intro')) skip = true; sessionStorage.setItem('rsm.intro', '1'); } catch (e) { /* ignore */ }
     if (skip) { el.remove(); return; }
     var closed = false;
-    function done() { if (closed) return; closed = true; el.classList.add('out'); setTimeout(function () { el.remove(); }, 700); }
+    function done() { if (closed) return; closed = true; el.classList.add('out'); setTimeout(function () { el.remove(); }, 450); }
     el.addEventListener('click', done);
-    setTimeout(done, 2600);
+    setTimeout(done, 1250);
   })();
 
   // ---------- البدء ----------
